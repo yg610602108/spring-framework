@@ -19,6 +19,10 @@ package org.springframework.core;
 import org.springframework.lang.Nullable;
 
 /**
+ * 定义用于将元数据附加到任意对象或从任意对象访问元数据的通用协定的接口
+ *
+ * 提供对 BeanDefinition 元数据操作的接口
+ *
  * Interface defining a generic contract for attaching and accessing metadata
  * to/from arbitrary objects.
  *
@@ -39,6 +43,9 @@ public interface AttributeAccessor {
 	void setAttribute(String name, @Nullable Object value);
 
 	/**
+	 *
+	 * 如果 BeanDefinition 已经被解析过了，则会添加一个值为 full 或 lite 的属性值
+	 *
 	 * Get the value of the attribute identified by {@code name}.
 	 * Return {@code null} if the attribute doesn't exist.
 	 * @param name the unique attribute key

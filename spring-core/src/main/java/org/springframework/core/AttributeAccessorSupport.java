@@ -37,6 +37,12 @@ import org.springframework.util.StringUtils;
 @SuppressWarnings("serial")
 public abstract class AttributeAccessorSupport implements AttributeAccessor, Serializable {
 
+	/**
+	 * 存储 BeanDefinition 的元数据
+	 *
+	 * BeanDefinition 额外的属性，可能某个 BeanDefinition 无法完全描述这个类信息
+	 * 此时就可以用这个 Map 来存储
+	 **/
 	/** Map with String keys and Object values. */
 	private final Map<String, Object> attributes = new LinkedHashMap<>();
 

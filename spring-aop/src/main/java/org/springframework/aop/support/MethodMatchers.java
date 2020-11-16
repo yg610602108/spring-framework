@@ -320,8 +320,8 @@ public abstract class MethodMatchers {
 	 * @since 5.1
 	 */
 	@SuppressWarnings("serial")
-	private static class IntersectionIntroductionAwareMethodMatcher extends IntersectionMethodMatcher
-			implements IntroductionAwareMethodMatcher {
+	private static class IntersectionIntroductionAwareMethodMatcher
+			extends IntersectionMethodMatcher implements IntroductionAwareMethodMatcher {
 
 		public IntersectionIntroductionAwareMethodMatcher(MethodMatcher mm1, MethodMatcher mm2) {
 			super(mm1, mm2);

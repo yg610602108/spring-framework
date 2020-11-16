@@ -16,9 +16,9 @@
 
 package org.springframework.transaction.interceptor;
 
-import java.io.Serializable;
-
 import org.springframework.util.Assert;
+
+import java.io.Serializable;
 
 /**
  * Rule determining whether or not a given exception (and any subclasses)
@@ -32,7 +32,7 @@ import org.springframework.util.Assert;
  * @see NoRollbackRuleAttribute
  */
 @SuppressWarnings("serial")
-public class RollbackRuleAttribute implements Serializable{
+public class RollbackRuleAttribute implements Serializable {
 
 	/**
 	 * The {@link RollbackRuleAttribute rollback rule} for
@@ -41,14 +41,12 @@ public class RollbackRuleAttribute implements Serializable{
 	public static final RollbackRuleAttribute ROLLBACK_ON_RUNTIME_EXCEPTIONS =
 			new RollbackRuleAttribute(RuntimeException.class);
 
-
 	/**
 	 * Could hold exception, resolving class name but would always require FQN.
 	 * This way does multiple string comparisons, but how often do we decide
 	 * whether to roll back a transaction following an exception?
 	 */
 	private final String exceptionName;
-
 
 	/**
 	 * Create a new instance of the {@code RollbackRuleAttribute} class.
@@ -91,7 +89,6 @@ public class RollbackRuleAttribute implements Serializable{
 		this.exceptionName = exceptionName;
 	}
 
-
 	/**
 	 * Return the pattern for the exception name.
 	 */
@@ -109,7 +106,6 @@ public class RollbackRuleAttribute implements Serializable{
 		return getDepth(ex.getClass(), 0);
 	}
 
-
 	private int getDepth(Class<?> exceptionClass, int depth) {
 		if (exceptionClass.getName().contains(this.exceptionName)) {
 			// Found it!
@@ -121,7 +117,6 @@ public class RollbackRuleAttribute implements Serializable{
 		}
 		return getDepth(exceptionClass.getSuperclass(), depth + 1);
 	}
-
 
 	@Override
 	public boolean equals(Object other) {

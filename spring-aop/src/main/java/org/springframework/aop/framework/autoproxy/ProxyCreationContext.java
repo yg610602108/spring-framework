@@ -34,9 +34,7 @@ public final class ProxyCreationContext {
 			new NamedThreadLocal<>("Name of currently proxied bean");
 
 
-	private ProxyCreationContext() {
-	}
-
+	private ProxyCreationContext() { }
 
 	/**
 	 * Return the name of the currently proxied bean instance.

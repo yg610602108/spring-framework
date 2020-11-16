@@ -16,6 +16,14 @@
 
 package org.springframework.aop.support;
 
+import org.springframework.aop.*;
+import org.springframework.core.BridgeMethodResolver;
+import org.springframework.core.MethodIntrospector;
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.ReflectionUtils;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -24,22 +32,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-
-import org.springframework.aop.Advisor;
-import org.springframework.aop.AopInvocationException;
-import org.springframework.aop.IntroductionAdvisor;
-import org.springframework.aop.IntroductionAwareMethodMatcher;
-import org.springframework.aop.MethodMatcher;
-import org.springframework.aop.Pointcut;
-import org.springframework.aop.PointcutAdvisor;
-import org.springframework.aop.SpringProxy;
-import org.springframework.aop.TargetClassAware;
-import org.springframework.core.BridgeMethodResolver;
-import org.springframework.core.MethodIntrospector;
-import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * Utility methods for AOP support code.
@@ -91,8 +83,8 @@ public abstract class AopUtils {
 	 * @see ClassUtils#isCglibProxy(Object)
 	 */
 	public static boolean isCglibProxy(@Nullable Object object) {
-		return (object instanceof SpringProxy &&
-				object.getClass().getName().contains(ClassUtils.CGLIB_CLASS_SEPARATOR));
+		return (object instanceof SpringProxy
+				&& object.getClass().getName().contains(ClassUtils.CGLIB_CLASS_SEPARATOR));
 	}
 
 	/**
@@ -137,13 +129,15 @@ public abstract class AopUtils {
 				SpringProxy.class.isAssignableFrom(targetType)) {
 			throw new IllegalStateException(String.format(
 					"Need to invoke method '%s' found on proxy for target class '%s' but cannot " +
-					"be delegated to target bean. Switch its visibility to package or protected.",
+							"be delegated to target bean. Switch its visibility to package or protected.",
 					method.getName(), method.getDeclaringClass().getSimpleName()));
 		}
 		return methodToUse;
 	}
 
 	/**
+	 * 确定给定的方法是否为 equals 方法
+	 *
 	 * Determine whether the given method is an "equals" method.
 	 * @see java.lang.Object#equals
 	 */
@@ -152,6 +146,8 @@ public abstract class AopUtils {
 	}
 
 	/**
+	 * 确定给定的方法是否为 hashCode 方法
+	 *
 	 * Determine whether the given method is a "hashCode" method.
 	 * @see java.lang.Object#hashCode
 	 */
@@ -160,6 +156,8 @@ public abstract class AopUtils {
 	}
 
 	/**
+	 * 确定给定的方法是否为 toString 方法
+	 *
 	 * Determine whether the given method is a "toString" method.
 	 * @see java.lang.Object#toString()
 	 */
@@ -168,12 +166,14 @@ public abstract class AopUtils {
 	}
 
 	/**
+	 * 确定给定的方法是否为 finalize 方法
+	 *
 	 * Determine whether the given method is a "finalize" method.
 	 * @see java.lang.Object#finalize()
 	 */
 	public static boolean isFinalizeMethod(@Nullable Method method) {
-		return (method != null && method.getName().equals("finalize") &&
-				method.getParameterCount() == 0);
+		return (method != null && method.getName().equals("finalize")
+				&& method.getParameterCount() == 0);
 	}
 
 	/**
@@ -223,30 +223,52 @@ public abstract class AopUtils {
 	 */
 	public static boolean canApply(Pointcut pc, Class<?> targetClass, boolean hasIntroductions) {
 		Assert.notNull(pc, "Pointcut must not be null");
+		/**
+		 * 过滤器不匹配，这里是 TransactionAttributeSourceClassFilter
+		 *
+		 * 是 TransactionalProxy
+		 * 是 PlatformTransactionManager
+		 * 是 PersistenceExceptionTranslator
+		 * 则为 False
+		 *
+		 * 有@Transactional注解为 True
+		 **/
 		if (!pc.getClassFilter().matches(targetClass)) {
 			return false;
 		}
-
+		// 方法匹配器，这里是 BeanFactoryTransactionAttributeSourceAdvisor
 		MethodMatcher methodMatcher = pc.getMethodMatcher();
+		// 是 TrueMethodMatcher 则直接返回适用
 		if (methodMatcher == MethodMatcher.TRUE) {
 			// No need to iterate the methods if we're matching any method anyway...
 			return true;
 		}
 
 		IntroductionAwareMethodMatcher introductionAwareMethodMatcher = null;
+		// 是 IntroductionAwareMethodMatcher 类型，这里不是
 		if (methodMatcher instanceof IntroductionAwareMethodMatcher) {
 			introductionAwareMethodMatcher = (IntroductionAwareMethodMatcher) methodMatcher;
 		}
 
 		Set<Class<?>> classes = new LinkedHashSet<>();
+		// 不是代理类，现在还没有创建代理类
 		if (!Proxy.isProxyClass(targetClass)) {
+			// 获取使用的原始类
 			classes.add(ClassUtils.getUserClass(targetClass));
 		}
+		// 获取给定类实现的所有接口
 		classes.addAll(ClassUtils.getAllInterfacesForClassAsSet(targetClass));
 
 		for (Class<?> clazz : classes) {
+			// 获取类定义的方法，包括父类 Object 的方法
 			Method[] methods = ReflectionUtils.getAllDeclaredMethods(clazz);
 			for (Method method : methods) {
+				/**
+				 * 是否匹配
+				 *
+				 * introductionAwareMethodMatcher 为空，调用的是 TransactionAttributeSourcePointcut 的 matches() 方法
+				 * @see org.springframework.transaction.interceptor.TransactionAttributeSourcePointcut#matches(java.lang.reflect.Method, java.lang.Class)
+				 **/
 				if (introductionAwareMethodMatcher != null ?
 						introductionAwareMethodMatcher.matches(method, targetClass, hasIntroductions) :
 						methodMatcher.matches(method, targetClass)) {
@@ -280,16 +302,28 @@ public abstract class AopUtils {
 	 * any introductions
 	 * @return whether the pointcut can apply on any method
 	 */
-	public static boolean canApply(Advisor advisor, Class<?> targetClass, boolean hasIntroductions) {
+	public static boolean canApply(Advisor advisor,
+								   Class<?> targetClass,
+								   boolean hasIntroductions) {
+		// 先处理 IntroductionAdvisor 类型
 		if (advisor instanceof IntroductionAdvisor) {
 			return ((IntroductionAdvisor) advisor).getClassFilter().matches(targetClass);
 		}
+		/**
+		 * 再处理 PointcutAdvisor 类型
+		 *
+		 * 之前创建的 InstantiationModelAwarePointcutAdvisor 是 PointcutAdvisor 的子类
+		 * 之前创建的 BeanFactoryTransactionAttributeSourceAdvisor 是 PointcutAdvisor 的子类
+		 **/
 		else if (advisor instanceof PointcutAdvisor) {
 			PointcutAdvisor pca = (PointcutAdvisor) advisor;
 			return canApply(pca.getPointcut(), targetClass, hasIntroductions);
 		}
 		else {
-			// It doesn't have a pointcut so we assume it applies.
+			/**
+			 * It doesn't have a pointcut so we assume it applies.
+			 * 没有切入点，因此假设它适用
+			 **/
 			return true;
 		}
 	}
@@ -302,30 +336,45 @@ public abstract class AopUtils {
 	 * @return sublist of Advisors that can apply to an object of the given class
 	 * (may be the incoming List as-is)
 	 */
-	public static List<Advisor> findAdvisorsThatCanApply(List<Advisor> candidateAdvisors, Class<?> clazz) {
+	public static List<Advisor> findAdvisorsThatCanApply(List<Advisor> candidateAdvisors,
+														 Class<?> clazz) {
 		if (candidateAdvisors.isEmpty()) {
 			return candidateAdvisors;
 		}
+
 		List<Advisor> eligibleAdvisors = new ArrayList<>();
+		// 先找 IntroductionAdvisor 类型的可用增强器
 		for (Advisor candidate : candidateAdvisors) {
+			/**
+			 * 是 IntroductionAdvisor 类型 且 可以应用于目标方法
+			 *
+			 * BeanFactoryTransactionAttributeSourceAdvisor 不是 IntroductionAdvisor 类型
+			 **/
 			if (candidate instanceof IntroductionAdvisor && canApply(candidate, clazz)) {
 				eligibleAdvisors.add(candidate);
 			}
 		}
+
+		// 有合格的增强器
 		boolean hasIntroductions = !eligibleAdvisors.isEmpty();
+
 		for (Advisor candidate : candidateAdvisors) {
 			if (candidate instanceof IntroductionAdvisor) {
 				// already processed
 				continue;
 			}
+			// 从候选的增强器中查找适用的
 			if (canApply(candidate, clazz, hasIntroductions)) {
 				eligibleAdvisors.add(candidate);
 			}
 		}
+
 		return eligibleAdvisors;
 	}
 
 	/**
+	 * 作为 AOP 方法调用的一部分，通过反射调用给定目标
+	 *
 	 * Invoke the given target via reflection, as part of an AOP method invocation.
 	 * @param target the target object
 	 * @param method the method to invoke
@@ -335,8 +384,9 @@ public abstract class AopUtils {
 	 * @throws org.springframework.aop.AopInvocationException in case of a reflection error
 	 */
 	@Nullable
-	public static Object invokeJoinpointUsingReflection(@Nullable Object target, Method method, Object[] args)
-			throws Throwable {
+	public static Object invokeJoinpointUsingReflection(@Nullable Object target,
+														Method method,
+														Object[] args) throws Throwable {
 
 		// Use reflection to invoke the method.
 		try {

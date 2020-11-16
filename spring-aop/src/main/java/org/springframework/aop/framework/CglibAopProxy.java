@@ -16,45 +16,28 @@
 
 package org.springframework.aop.framework;
 
-import java.io.Serializable;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.UndeclaredThrowableException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.WeakHashMap;
-
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.springframework.aop.Advisor;
-import org.springframework.aop.AopInvocationException;
-import org.springframework.aop.PointcutAdvisor;
-import org.springframework.aop.RawTargetAccess;
-import org.springframework.aop.TargetSource;
+import org.springframework.aop.*;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.cglib.core.ClassGenerator;
 import org.springframework.cglib.core.CodeGenerationException;
 import org.springframework.cglib.core.SpringNamingPolicy;
-import org.springframework.cglib.proxy.Callback;
-import org.springframework.cglib.proxy.CallbackFilter;
-import org.springframework.cglib.proxy.Dispatcher;
-import org.springframework.cglib.proxy.Enhancer;
-import org.springframework.cglib.proxy.Factory;
-import org.springframework.cglib.proxy.MethodInterceptor;
-import org.springframework.cglib.proxy.MethodProxy;
-import org.springframework.cglib.proxy.NoOp;
+import org.springframework.cglib.proxy.*;
 import org.springframework.cglib.transform.impl.UndeclaredThrowableStrategy;
 import org.springframework.core.SmartClassLoader;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
+
+import java.io.Serializable;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.UndeclaredThrowableException;
+import java.util.*;
 
 /**
  * CGLIB-based {@link AopProxy} implementation for the Spring AOP framework.
@@ -85,11 +68,17 @@ class CglibAopProxy implements AopProxy, Serializable {
 
 	// Constants for CGLIB callback array indices
 	private static final int AOP_PROXY = 0;
+
 	private static final int INVOKE_TARGET = 1;
+
 	private static final int NO_OVERRIDE = 2;
+
 	private static final int DISPATCH_TARGET = 3;
+
 	private static final int DISPATCH_ADVISED = 4;
+
 	private static final int INVOKE_EQUALS = 5;
+
 	private static final int INVOKE_HASHCODE = 6;
 
 
@@ -306,7 +295,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 		Callback targetDispatcher = (isStatic ?
 				new StaticDispatcher(this.advised.getTargetSource().getTarget()) : new SerializableNoOp());
 
-		Callback[] mainCallbacks = new Callback[] {
+		Callback[] mainCallbacks = new Callback[]{
 				aopInterceptor,  // for normal advice
 				targetInterceptor,  // invoke target without considering advice, if optimized
 				new SerializableNoOp(),  // no override for methods mapped to this
@@ -377,8 +366,10 @@ class CglibAopProxy implements AopProxy, Serializable {
 	 * {@code proxy} and also verifies that {@code null} is not returned as a primitive.
 	 */
 	@Nullable
-	private static Object processReturnType(
-			Object proxy, @Nullable Object target, Method method, @Nullable Object returnValue) {
+	private static Object processReturnType(Object proxy,
+											@Nullable Object target,
+											Method method,
+											@Nullable Object returnValue) {
 
 		// Massage return value if necessary
 		if (returnValue != null && returnValue == target &&
@@ -392,6 +383,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 			throw new AopInvocationException(
 					"Null return value from advice does not match primitive return type for: " + method);
 		}
+
 		return returnValue;
 	}
 
@@ -425,6 +417,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 			Object retVal = methodProxy.invoke(this.target, args);
 			return processReturnType(proxy, this.target, method, retVal);
 		}
+
 	}
 
 
@@ -454,6 +447,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 				AopContext.setCurrentProxy(oldProxy);
 			}
 		}
+
 	}
 
 
@@ -484,6 +478,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 				}
 			}
 		}
+
 	}
 
 
@@ -515,6 +510,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 				}
 			}
 		}
+
 	}
 
 
@@ -537,6 +533,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 		public Object loadObject() {
 			return this.target;
 		}
+
 	}
 
 
@@ -555,6 +552,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 		public Object loadObject() throws Exception {
 			return this.advised;
 		}
+
 	}
 
 
@@ -588,6 +586,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 				return false;
 			}
 		}
+
 	}
 
 
@@ -607,6 +606,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 		public Object intercept(Object proxy, Method method, Object[] args, MethodProxy methodProxy) {
 			return CglibAopProxy.class.hashCode() * 13 + this.advised.getTargetSource().hashCode();
 		}
+
 	}
 
 
@@ -641,8 +641,8 @@ class CglibAopProxy implements AopProxy, Serializable {
 			retVal = processReturnType(proxy, this.target, method, retVal);
 			return retVal;
 		}
-	}
 
+	}
 
 	/**
 	 * General purpose AOP callback. Used when the target is dynamic or when the
@@ -658,7 +658,8 @@ class CglibAopProxy implements AopProxy, Serializable {
 
 		@Override
 		@Nullable
-		public Object intercept(Object proxy, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
+		public Object intercept(Object proxy, Method method,
+								Object[] args, MethodProxy methodProxy) throws Throwable {
 			Object oldProxy = null;
 			boolean setProxyContext = false;
 			Object target = null;
@@ -716,6 +717,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 		public int hashCode() {
 			return this.advised.hashCode();
 		}
+
 	}
 
 
@@ -728,8 +730,8 @@ class CglibAopProxy implements AopProxy, Serializable {
 		private final MethodProxy methodProxy;
 
 		public CglibMethodInvocation(Object proxy, @Nullable Object target, Method method,
-				Object[] arguments, @Nullable Class<?> targetClass,
-				List<Object> interceptorsAndDynamicMethodMatchers, MethodProxy methodProxy) {
+									 Object[] arguments, @Nullable Class<?> targetClass,
+									 List<Object> interceptorsAndDynamicMethodMatchers, MethodProxy methodProxy) {
 
 			super(proxy, target, method, arguments, targetClass, interceptorsAndDynamicMethodMatchers);
 
@@ -753,6 +755,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 				return super.invokeJoinpoint();
 			}
 		}
+
 	}
 
 
@@ -966,6 +969,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 			hashCode = 13 * hashCode + (this.advised.isOpaque() ? 1 : 0);
 			return hashCode;
 		}
+
 	}
 
 
@@ -1014,6 +1018,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 				}
 			}
 		}
+
 	}
 
 }

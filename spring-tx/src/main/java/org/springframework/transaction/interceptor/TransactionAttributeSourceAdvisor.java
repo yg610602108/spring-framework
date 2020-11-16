@@ -17,7 +17,6 @@
 package org.springframework.transaction.interceptor;
 
 import org.aopalliance.aop.Advice;
-
 import org.springframework.aop.ClassFilter;
 import org.springframework.aop.Pointcut;
 import org.springframework.aop.support.AbstractPointcutAdvisor;
@@ -55,8 +54,7 @@ public class TransactionAttributeSourceAdvisor extends AbstractPointcutAdvisor {
 	/**
 	 * Create a new TransactionAttributeSourceAdvisor.
 	 */
-	public TransactionAttributeSourceAdvisor() {
-	}
+	public TransactionAttributeSourceAdvisor() { }
 
 	/**
 	 * Create a new TransactionAttributeSourceAdvisor.
@@ -65,7 +63,6 @@ public class TransactionAttributeSourceAdvisor extends AbstractPointcutAdvisor {
 	public TransactionAttributeSourceAdvisor(TransactionInterceptor interceptor) {
 		setTransactionInterceptor(interceptor);
 	}
-
 
 	/**
 	 * Set the transaction interceptor to use for this advisor.
@@ -81,7 +78,6 @@ public class TransactionAttributeSourceAdvisor extends AbstractPointcutAdvisor {
 	public void setClassFilter(ClassFilter classFilter) {
 		this.pointcut.setClassFilter(classFilter);
 	}
-
 
 	@Override
 	public Advice getAdvice() {

@@ -16,10 +16,6 @@
 
 package org.springframework.context.annotation;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -38,6 +34,10 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.MultiValueMap;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Internal class used to evaluate {@link Conditional} annotations.
  *
@@ -49,16 +49,15 @@ class ConditionEvaluator {
 
 	private final ConditionContextImpl context;
 
-
 	/**
 	 * Create a new {@link ConditionEvaluator} instance.
 	 */
 	public ConditionEvaluator(@Nullable BeanDefinitionRegistry registry,
-			@Nullable Environment environment, @Nullable ResourceLoader resourceLoader) {
+							  @Nullable Environment environment,
+							  @Nullable ResourceLoader resourceLoader) {
 
 		this.context = new ConditionContextImpl(registry, environment, resourceLoader);
 	}
-
 
 	/**
 	 * Determine if an item should be skipped based on {@code @Conditional} annotations.
@@ -72,19 +71,22 @@ class ConditionEvaluator {
 	}
 
 	/**
+	 * 根据{@code @Conditional}注解确定是否应跳过此项
+	 *
 	 * Determine if an item should be skipped based on {@code @Conditional} annotations.
 	 * @param metadata the meta data
 	 * @param phase the phase of the call
 	 * @return if the item should be skipped
 	 */
-	public boolean shouldSkip(@Nullable AnnotatedTypeMetadata metadata, @Nullable ConfigurationPhase phase) {
+	public boolean shouldSkip(@Nullable AnnotatedTypeMetadata metadata,
+							  @Nullable ConfigurationPhase phase) {
 		if (metadata == null || !metadata.isAnnotated(Conditional.class.getName())) {
 			return false;
 		}
 
 		if (phase == null) {
-			if (metadata instanceof AnnotationMetadata &&
-					ConfigurationClassUtils.isConfigurationCandidate((AnnotationMetadata) metadata)) {
+			if (metadata instanceof AnnotationMetadata
+					&& ConfigurationClassUtils.isConfigurationCandidate((AnnotationMetadata) metadata)) {
 				return shouldSkip(metadata, ConfigurationPhase.PARSE_CONFIGURATION);
 			}
 			return shouldSkip(metadata, ConfigurationPhase.REGISTER_BEAN);
@@ -120,11 +122,11 @@ class ConditionEvaluator {
 		return (List<String[]>) (values != null ? values : Collections.emptyList());
 	}
 
-	private Condition getCondition(String conditionClassName, @Nullable ClassLoader classloader) {
+	private Condition getCondition(String conditionClassName,
+								   @Nullable ClassLoader classloader) {
 		Class<?> conditionClass = ClassUtils.resolveClassName(conditionClassName, classloader);
 		return (Condition) BeanUtils.instantiateClass(conditionClass);
 	}
-
 
 	/**
 	 * Implementation of a {@link ConditionContext}.
@@ -145,7 +147,8 @@ class ConditionEvaluator {
 		private final ClassLoader classLoader;
 
 		public ConditionContextImpl(@Nullable BeanDefinitionRegistry registry,
-				@Nullable Environment environment, @Nullable ResourceLoader resourceLoader) {
+									@Nullable Environment environment,
+									@Nullable ResourceLoader resourceLoader) {
 
 			this.registry = registry;
 			this.beanFactory = deduceBeanFactory(registry);
@@ -181,7 +184,7 @@ class ConditionEvaluator {
 
 		@Nullable
 		private ClassLoader deduceClassLoader(@Nullable ResourceLoader resourceLoader,
-				@Nullable ConfigurableListableBeanFactory beanFactory) {
+											  @Nullable ConfigurableListableBeanFactory beanFactory) {
 
 			if (resourceLoader != null) {
 				ClassLoader classLoader = resourceLoader.getClassLoader();
@@ -222,6 +225,7 @@ class ConditionEvaluator {
 		public ClassLoader getClassLoader() {
 			return this.classLoader;
 		}
+
 	}
 
 }

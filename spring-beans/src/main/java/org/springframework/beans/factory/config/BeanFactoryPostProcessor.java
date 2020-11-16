@@ -17,8 +17,17 @@
 package org.springframework.beans.factory.config;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 
 /**
+ * 允许自定义修改应用程序上下文的 BeanDefinition，以适应上下文基础 BeanFactory 的 Bean 属性值
+ * 应用程序上下文可以在其 BeanDefinition 中自动检测 BeanFactoryPostProcessor Bean，并在创建任何其他 Bean 之前应用它们
+ * 对于针对系统管理员的自定义配置文件很有用，这些文件覆盖了在应用程序上下文中配置的 Bean 属性
+ * 请参阅 PropertyResourceConfigurer 及其具体实现，以获取可解决此类配置需求的即用型解决方案
+ * BeanFactoryPostProcessor 可以与 BeanDefinition 进行交互并对其进行修改，但不能与 Bean 实例进行交互
+ * 这样做可能会导致 Bean 实例化过早，从而违反了容器并造成了意外的副作用
+ * 如果需要 Bean 实例交互，请考虑改为实现 BeanPostProcessor
+ *
  * Allows for custom modification of an application context's bean definitions,
  * adapting the bean property values of the context's underlying bean factory.
  *
@@ -46,6 +55,23 @@ import org.springframework.beans.BeansException;
 public interface BeanFactoryPostProcessor {
 
 	/**
+	 * 标准初始化后，修改应用程序上下文的内部 BeanFactory
+	 * 所有 BeanDefinition 都将被加载，但尚未实例化任何 Bean
+	 * 这甚至可以覆盖或添加属性，甚至可以用于初始化 Bean
+	 *
+	 * 可以用来干预 BeanFactory 的初始化过程
+	 *
+	 * CGLIB 的作用点
+	 *
+	 * 执行时机：所有的 BeanDefinition 信息已经加载到容器中，但是 Bean 实例还没有被初始化
+	 * 可以实现完成扫描之后对 Spring 功能进行扩展
+	 *
+	 * Spring 会先执行
+	 * {@link BeanDefinitionRegistryPostProcessor#postProcessBeanDefinitionRegistry(org.springframework.beans.factory.support.BeanDefinitionRegistry)}
+	 * 再执行
+	 * {@link BeanFactoryPostProcessor#postProcessBeanFactory(org.springframework.beans.factory.config.ConfigurableListableBeanFactory)}
+	 * {@see org.springframework.context.support.PostProcessorRegistrationDelegate#invokeBeanFactoryPostProcessors(org.springframework.beans.factory.config.ConfigurableListableBeanFactory, java.util.List)}
+	 *
 	 * Modify the application context's internal bean factory after its standard
 	 * initialization. All bean definitions will have been loaded, but no beans
 	 * will have been instantiated yet. This allows for overriding or adding

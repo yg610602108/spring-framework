@@ -41,7 +41,8 @@ import org.springframework.util.Assert;
  * @see DefaultBeanFactoryPointcutAdvisor
  */
 @SuppressWarnings("serial")
-public abstract class AbstractBeanFactoryPointcutAdvisor extends AbstractPointcutAdvisor implements BeanFactoryAware {
+public abstract class AbstractBeanFactoryPointcutAdvisor
+		extends AbstractPointcutAdvisor implements BeanFactoryAware {
 
 	@Nullable
 	private String adviceBeanName;
@@ -53,7 +54,6 @@ public abstract class AbstractBeanFactoryPointcutAdvisor extends AbstractPointcu
 	private transient volatile Advice advice;
 
 	private transient volatile Object adviceMonitor = new Object();
-
 
 	/**
 	 * Specify the name of the advice bean that this advisor should refer to.
@@ -144,7 +144,6 @@ public abstract class AbstractBeanFactoryPointcutAdvisor extends AbstractPointcu
 		}
 		return sb.toString();
 	}
-
 
 	//---------------------------------------------------------------------
 	// Serialization support

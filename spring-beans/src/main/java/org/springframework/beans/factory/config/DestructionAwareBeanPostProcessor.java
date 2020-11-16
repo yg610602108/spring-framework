@@ -41,7 +41,8 @@ public interface DestructionAwareBeanPostProcessor extends BeanPostProcessor {
 	 * @see org.springframework.beans.factory.DisposableBean#destroy()
 	 * @see org.springframework.beans.factory.support.AbstractBeanDefinition#setDestroyMethodName(String)
 	 */
-	void postProcessBeforeDestruction(Object bean, String beanName) throws BeansException;
+	void postProcessBeforeDestruction(Object bean,
+									  String beanName) throws BeansException;
 
 	/**
 	 * Determine whether the given bean instance requires destruction by this

@@ -16,15 +16,15 @@
 
 package org.springframework.beans.factory;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Field;
-import java.lang.reflect.Member;
-
 import org.springframework.core.MethodParameter;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Field;
+import java.lang.reflect.Member;
 
 /**
  * A simple descriptor for an injection point, pointing to a method/constructor
@@ -47,7 +47,6 @@ public class InjectionPoint {
 
 	@Nullable
 	private volatile Annotation[] fieldAnnotations;
-
 
 	/**
 	 * Create an injection point descriptor for a method or constructor parameter.
@@ -81,9 +80,7 @@ public class InjectionPoint {
 	/**
 	 * Just available for serialization purposes in subclasses.
 	 */
-	protected InjectionPoint() {
-	}
-
+	protected InjectionPoint() { }
 
 	/**
 	 * Return the wrapped MethodParameter, if any.
@@ -173,7 +170,6 @@ public class InjectionPoint {
 	public AnnotatedElement getAnnotatedElement() {
 		return (this.field != null ? this.field : obtainMethodParameter().getAnnotatedElement());
 	}
-
 
 	@Override
 	public boolean equals(Object other) {

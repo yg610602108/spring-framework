@@ -16,12 +16,7 @@
 
 package org.springframework.aop.support;
 
-import java.io.Serializable;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 import org.aopalliance.aop.Advice;
-
 import org.springframework.aop.ClassFilter;
 import org.springframework.aop.DynamicIntroductionAdvice;
 import org.springframework.aop.IntroductionAdvisor;
@@ -31,6 +26,10 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
+import java.io.Serializable;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 /**
  * Simple {@link org.springframework.aop.IntroductionAdvisor} implementation
  * that by default applies to any class.
@@ -39,7 +38,7 @@ import org.springframework.util.ClassUtils;
  * @author Juergen Hoeller
  * @since 11.11.2003
  */
-@SuppressWarnings({"serial" })
+@SuppressWarnings({"serial"})
 public class DefaultIntroductionAdvisor implements IntroductionAdvisor, ClassFilter, Ordered, Serializable {
 
 	private final Advice advice;
@@ -113,8 +112,8 @@ public class DefaultIntroductionAdvisor implements IntroductionAdvisor, ClassFil
 		for (Class<?> ifc : this.interfaces) {
 			if (this.advice instanceof DynamicIntroductionAdvice &&
 					!((DynamicIntroductionAdvice) this.advice).implementsInterface(ifc)) {
-			throw new IllegalArgumentException("DynamicIntroductionAdvice [" + this.advice + "] " +
-					"does not implement interface [" + ifc.getName() + "] specified for introduction");
+				throw new IllegalArgumentException("DynamicIntroductionAdvice [" + this.advice + "] " +
+						"does not implement interface [" + ifc.getName() + "] specified for introduction");
 			}
 		}
 	}

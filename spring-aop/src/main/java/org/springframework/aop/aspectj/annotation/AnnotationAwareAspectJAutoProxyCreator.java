@@ -58,7 +58,6 @@ public class AnnotationAwareAspectJAutoProxyCreator extends AspectJAwareAdvisorA
 	@Nullable
 	private BeanFactoryAspectJAdvisorsBuilder aspectJAdvisorsBuilder;
 
-
 	/**
 	 * Set a list of regex patterns, matching eligible @AspectJ bean names.
 	 * <p>Default is to consider all @AspectJ beans as eligible.
@@ -85,15 +84,31 @@ public class AnnotationAwareAspectJAutoProxyCreator extends AspectJAwareAdvisorA
 				new BeanFactoryAspectJAdvisorsBuilderAdapter(beanFactory, this.aspectJAdvisorFactory);
 	}
 
-
+	/**
+	 * 获取所有候选的增强器
+	 **/
 	@Override
 	protected List<Advisor> findCandidateAdvisors() {
-		// Add all the Spring advisors found according to superclass rules.
+		/**
+		 * Add all the Spring advisors found according to superclass rules.
+		 * 添加根据超类规则找到的所有 Spring Advisors
+		 *
+		 * 查找要在自动代理中使用的所有候选 Advisor【找 Spring AOP 的 Advisor】【主要是找事务相关的】
+		 **/
 		List<Advisor> advisors = super.findCandidateAdvisors();
-		// Build Advisors for all AspectJ aspects in the bean factory.
+		/**
+		 * Build Advisors for all AspectJ aspects in the bean factory.
+		 * 构建 Bean工厂 中所有 AspectJ 方面的 Advisors
+		 **/
 		if (this.aspectJAdvisorsBuilder != null) {
+			/**
+			 * 查找带有 AspectJ 注解的 Aspect bean【不同的注解对应不同的切面类】【找 AspectJ 的 Advisor】
+			 *
+			 * aspectJAdvisorsBuilder 是之前回调的时候实例化的 BeanFactoryAspectJAdvisorsBuilderAdapter
+			 **/
 			advisors.addAll(this.aspectJAdvisorsBuilder.buildAspectJAdvisors());
 		}
+
 		return advisors;
 	}
 
@@ -130,7 +145,6 @@ public class AnnotationAwareAspectJAutoProxyCreator extends AspectJAwareAdvisorA
 			return false;
 		}
 	}
-
 
 	/**
 	 * Subclass of BeanFactoryAspectJAdvisorsBuilderAdapter that delegates to

@@ -47,8 +47,15 @@ public class SpringTransactionAnnotationParser implements TransactionAnnotationP
 	@Override
 	@Nullable
 	public TransactionAttribute parseTransactionAnnotation(AnnotatedElement element) {
+		// 获取合并的注解属性
 		AnnotationAttributes attributes = AnnotatedElementUtils.findMergedAnnotationAttributes(
-				element, Transactional.class, false, false);
+				element,
+				Transactional.class,
+				false,
+				false
+		);
+
+		// 解析事务注解
 		if (attributes != null) {
 			return parseTransactionAnnotation(attributes);
 		}
@@ -58,20 +65,23 @@ public class SpringTransactionAnnotationParser implements TransactionAnnotationP
 	}
 
 	public TransactionAttribute parseTransactionAnnotation(Transactional ann) {
-		return parseTransactionAnnotation(AnnotationUtils.getAnnotationAttributes(ann, false, false));
+		return parseTransactionAnnotation(
+				AnnotationUtils.getAnnotationAttributes(ann, false, false)
+		);
 	}
 
 	protected TransactionAttribute parseTransactionAnnotation(AnnotationAttributes attributes) {
 		RuleBasedTransactionAttribute rbta = new RuleBasedTransactionAttribute();
-
+		// 处理传播行为
 		Propagation propagation = attributes.getEnum("propagation");
 		rbta.setPropagationBehavior(propagation.value());
+		// 处理隔离级别
 		Isolation isolation = attributes.getEnum("isolation");
 		rbta.setIsolationLevel(isolation.value());
 		rbta.setTimeout(attributes.getNumber("timeout").intValue());
 		rbta.setReadOnly(attributes.getBoolean("readOnly"));
 		rbta.setQualifier(attributes.getString("value"));
-
+		// 处理回滚策略
 		List<RollbackRuleAttribute> rollbackRules = new ArrayList<>();
 		for (Class<?> rbRule : attributes.getClassArray("rollbackFor")) {
 			rollbackRules.add(new RollbackRuleAttribute(rbRule));

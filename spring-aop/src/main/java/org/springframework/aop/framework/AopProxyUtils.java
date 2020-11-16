@@ -18,6 +18,7 @@ package org.springframework.aop.framework;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
 
@@ -212,6 +213,10 @@ public abstract class AopProxyUtils {
 
 
 	/**
+	 * 如有必要，请使给定参数适应给定方法中的目标签名
+	 * 特别是如果给定 VARARGS 参数数组与方法中声明的 VARARGS 参数的数组类型不匹配
+	 * @see Modifier#VARARGS
+	 *
 	 * Adapt the given arguments to the target signature in the given method,
 	 * if necessary: in particular, if a given vararg argument array does not
 	 * match the array type of the declared vararg parameter in the method.

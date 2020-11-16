@@ -68,8 +68,12 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 
 	protected final ParameterNameDiscoverer parameterNameDiscoverer = new AspectJAnnotationParameterNameDiscoverer();
 
-
 	/**
+	 * 如果某事物具有 @Aspect 注解并且不是由 ajc 编译的，则认为它是适合 Spring AOP 系统使用的 AspectJ 事物
+	 *
+	 * 进行此后一个测试的原因是，ajc 使用-1.5标志进行编译时，以代码样式（AspectJ语言）编写的方面也具有注解，
+	 * 但是 Spring AOP 不能使用它们
+	 *
 	 * We consider something to be an AspectJ aspect suitable for use by the Spring AOP system
 	 * if it has the @Aspect annotation, and was not compiled by ajc. The reason for this latter test
 	 * is that aspects written in the code-style (AspectJ language) also have the annotation present
@@ -80,6 +84,7 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 		return (hasAspectAnnotation(clazz) && !compiledByAjc(clazz));
 	}
 
+	// 被 @Aspect 注解标注
 	private boolean hasAspectAnnotation(Class<?> clazz) {
 		return (AnnotationUtils.findAnnotation(clazz, Aspect.class) != null);
 	}
@@ -102,9 +107,13 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 
 	@Override
 	public void validate(Class<?> aspectClass) throws AopConfigException {
-		// If the parent has the annotation and isn't abstract it's an error
-		if (aspectClass.getSuperclass().getAnnotation(Aspect.class) != null &&
-				!Modifier.isAbstract(aspectClass.getSuperclass().getModifiers())) {
+		/**
+		 * If the parent has the annotation and isn't abstract it's an error
+		 *
+		 * 如果父类有注解并且不是抽象的则错误
+		 **/
+		if (aspectClass.getSuperclass().getAnnotation(Aspect.class) != null
+				&& !Modifier.isAbstract(aspectClass.getSuperclass().getModifiers())) {
 			throw new AopConfigException("[" + aspectClass.getName() + "] cannot extend concrete aspect [" +
 					aspectClass.getSuperclass().getName() + "]");
 		}
@@ -124,12 +133,18 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 	}
 
 	/**
+	 * 查找并返回给定方法上的第一个 AspectJ 注释（反正应该只有一个...）
+	 *
 	 * Find and return the first AspectJ annotation on the given method
 	 * (there <i>should</i> only be one anyway...).
 	 */
 	@SuppressWarnings("unchecked")
 	@Nullable
 	protected static AspectJAnnotation<?> findAspectJAnnotationOnMethod(Method method) {
+		/**
+		 * Class<?>[] ASPECTJ_ANNOTATION_CLASSES = new Class<?>[] {
+		 * 			Pointcut.class, Around.class, Before.class, After.class, AfterReturning.class, AfterThrowing.class};
+		 **/
 		for (Class<?> clazz : ASPECTJ_ANNOTATION_CLASSES) {
 			AspectJAnnotation<?> foundAnnotation = findAnnotation(method, (Class<Annotation>) clazz);
 			if (foundAnnotation != null) {
@@ -140,7 +155,8 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 	}
 
 	@Nullable
-	private static <A extends Annotation> AspectJAnnotation<A> findAnnotation(Method method, Class<A> toLookFor) {
+	private static <A extends Annotation> AspectJAnnotation<A> findAnnotation(Method method,
+																			  Class<A> toLookFor) {
 		A result = AnnotationUtils.findAnnotation(method, toLookFor);
 		if (result != null) {
 			return new AspectJAnnotation<>(result);

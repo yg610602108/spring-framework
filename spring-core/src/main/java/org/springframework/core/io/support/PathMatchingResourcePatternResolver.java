@@ -16,44 +16,22 @@
 
 package org.springframework.core.io.support;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.core.io.*;
+import org.springframework.lang.Nullable;
+import org.springframework.util.*;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.net.JarURLConnection;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.net.URLConnection;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.net.*;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipException;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.core.io.UrlResource;
-import org.springframework.core.io.VfsResource;
-import org.springframework.lang.Nullable;
-import org.springframework.util.AntPathMatcher;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.PathMatcher;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.ResourceUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * A {@link ResourcePatternResolver} implementation that is able to resolve a
@@ -200,11 +178,9 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 		}
 	}
 
-
 	private final ResourceLoader resourceLoader;
 
 	private PathMatcher pathMatcher = new AntPathMatcher();
-
 
 	/**
 	 * Create a new PathMatchingResourcePatternResolver with a DefaultResourceLoader.
@@ -237,7 +213,6 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 		this.resourceLoader = new DefaultResourceLoader(classLoader);
 	}
 
-
 	/**
 	 * Return the ResourceLoader that this pattern resolver works with.
 	 */
@@ -267,7 +242,6 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	public PathMatcher getPathMatcher() {
 		return this.pathMatcher;
 	}
-
 
 	@Override
 	public Resource getResource(String location) {
@@ -299,7 +273,7 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 			}
 			else {
 				// a single resource with the given name
-				return new Resource[] {getResourceLoader().getResource(locationPattern)};
+				return new Resource[]{getResourceLoader().getResource(locationPattern)};
 			}
 		}
 	}
@@ -645,7 +619,7 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 				rootEntryPath = rootEntryPath + "/";
 			}
 			Set<Resource> result = new LinkedHashSet<>(8);
-			for (Enumeration<JarEntry> entries = jarFile.entries(); entries.hasMoreElements();) {
+			for (Enumeration<JarEntry> entries = jarFile.entries(); entries.hasMoreElements(); ) {
 				JarEntry entry = entries.nextElement();
 				String entryPath = entry.getName();
 				if (entryPath.startsWith(rootEntryPath)) {
@@ -845,6 +819,7 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 			VfsPatternUtils.visit(root, visitor);
 			return visitor.getResources();
 		}
+
 	}
 
 
@@ -919,6 +894,7 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 		public String toString() {
 			return "sub-pattern: " + this.subPattern + ", resources: " + this.resources;
 		}
+
 	}
 
 }

@@ -73,8 +73,10 @@ class BeanDefinitionValueResolver {
 	 * @param beanDefinition the BeanDefinition of the bean that we work on
 	 * @param typeConverter the TypeConverter to use for resolving TypedStringValues
 	 */
-	public BeanDefinitionValueResolver(
-			AbstractBeanFactory beanFactory, String beanName, BeanDefinition beanDefinition, TypeConverter typeConverter) {
+	public BeanDefinitionValueResolver(AbstractBeanFactory beanFactory,
+									   String beanName,
+									   BeanDefinition beanDefinition,
+									   TypeConverter typeConverter) {
 
 		this.beanFactory = beanFactory;
 		this.beanName = beanName;
@@ -84,6 +86,8 @@ class BeanDefinitionValueResolver {
 
 
 	/**
+	 * 给定一个 PropertyValue，返回一个值，如有必要，解析对工厂中其他 bean 的任何引用
+	 *
 	 * Given a PropertyValue, return a value, resolving any references to other
 	 * beans in the factory if necessary. The value could be:
 	 * <li>A BeanDefinition, which leads to the creation of a corresponding
@@ -257,6 +261,8 @@ class BeanDefinitionValueResolver {
 	}
 
 	/**
+	 * 如有必要，将给定的 String 值评估为表达式
+	 *
 	 * Evaluate the given String value as an expression, if necessary.
 	 * @param value the original value (may be an expression)
 	 * @return the resolved value if necessary, or the original String value
@@ -347,13 +353,17 @@ class BeanDefinitionValueResolver {
 
 	/**
 	 * Resolve a reference to another bean in the factory.
+	 *
+	 * 在工厂中解决对另一个 bean 的引用【解决循环依赖的问题】
 	 */
 	@Nullable
 	private Object resolveReference(Object argName, RuntimeBeanReference ref) {
 		try {
 			Object bean;
+			// 获取依赖的 BeanName
 			String refName = ref.getBeanName();
 			refName = String.valueOf(doEvaluate(refName));
+
 			if (ref.isToParent()) {
 				if (this.beanFactory.getParentBeanFactory() == null) {
 					throw new BeanCreationException(
@@ -364,6 +374,13 @@ class BeanDefinitionValueResolver {
 				bean = this.beanFactory.getParentBeanFactory().getBean(refName);
 			}
 			else {
+				/**
+				 * 走创建依赖 Bean 的流程
+				 *
+				 * 解析 A 类时，将 A 类标记为当前正在创建
+				 * 填充 A 类的属性值时去获取并创建 B 类，此时将 B 类标记为当前正在创建，创建完后放入缓存
+				 * 填充 B 类的属性值时去获取并创建 A 类，此时 A 类已经可以获取到了
+				 **/
 				bean = this.beanFactory.getBean(refName);
 				this.beanFactory.registerDependentBean(refName, this.beanName);
 			}

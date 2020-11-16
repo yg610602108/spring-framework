@@ -16,10 +16,10 @@
 
 package org.springframework.core.type.filter;
 
-import java.io.IOException;
-
 import org.springframework.core.type.classreading.MetadataReader;
 import org.springframework.core.type.classreading.MetadataReaderFactory;
+
+import java.io.IOException;
 
 /**
  * Base interface for type filters using a
@@ -42,7 +42,7 @@ public interface TypeFilter {
 	 * @return whether this filter matches
 	 * @throws IOException in case of I/O failure when reading metadata
 	 */
-	boolean match(MetadataReader metadataReader, MetadataReaderFactory metadataReaderFactory)
-			throws IOException;
+	boolean match(MetadataReader metadataReader,
+				  MetadataReaderFactory metadataReaderFactory) throws IOException;
 
 }

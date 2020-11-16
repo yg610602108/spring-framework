@@ -16,13 +16,15 @@
 
 package org.springframework.beans.factory.config;
 
-import java.beans.PropertyDescriptor;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.PropertyValues;
 import org.springframework.lang.Nullable;
 
+import java.beans.PropertyDescriptor;
+
 /**
+ * {@link BeanPostProcessor}的子接口，它添加实例化之前的回调，以及在实例化之后但设置了显式属性或发生自动装配之前的回调
+ *
  * Subinterface of {@link BeanPostProcessor} that adds a before-instantiation callback,
  * and a callback after instantiation but before explicit properties are set or
  * autowiring occurs.
@@ -47,6 +49,9 @@ import org.springframework.lang.Nullable;
 public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
 
 	/**
+	 * 在实例化目标 Bean 之前应用此 BeanPostProcessor
+	 * 返回的 Bean 对象可以是代替目标 Bean 使用的代理，从而有效地抑制了目标bean的默认实例化
+	 *
 	 * Apply this BeanPostProcessor <i>before the target bean gets instantiated</i>.
 	 * The returned bean object may be a proxy to use instead of the target bean,
 	 * effectively suppressing default instantiation of the target bean.
@@ -71,11 +76,15 @@ public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
 	 * @see org.springframework.beans.factory.support.AbstractBeanDefinition#getFactoryMethodName()
 	 */
 	@Nullable
-	default Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) throws BeansException {
+	default Object postProcessBeforeInstantiation(Class<?> beanClass,
+												  String beanName) throws BeansException {
 		return null;
 	}
 
 	/**
+	 * 通过构造函数或工厂方法在实例化 Bean 之后但在发生 Spring 属性填充（通过显式属性或自动装配）之前执行操作
+	 * 在 Spring 的自动装配开始之前，他是在给定的 Bean 实例上执行自定义字段注入的理想回调
+	 *
 	 * Perform operations after the bean has been instantiated, via a constructor or factory method,
 	 * but before Spring property population (from explicit properties or autowiring) occurs.
 	 * <p>This is the ideal callback for performing custom field injection on the given bean
@@ -90,11 +99,14 @@ public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
 	 * @throws org.springframework.beans.BeansException in case of errors
 	 * @see #postProcessBeforeInstantiation
 	 */
-	default boolean postProcessAfterInstantiation(Object bean, String beanName) throws BeansException {
+	default boolean postProcessAfterInstantiation(Object bean,
+												  String beanName) throws BeansException {
 		return true;
 	}
 
 	/**
+	 * 在工厂将它们应用于给定 Bean 之前，对给定的属性值进行后处理，而无需使用属性描述符
+	 *
 	 * Post-process the given property values before the factory applies them
 	 * to the given bean, without any need for property descriptors.
 	 * <p>Implementations should return {@code null} (the default) if they provide a custom
@@ -113,13 +125,16 @@ public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
 	 * @see #postProcessPropertyValues
 	 */
 	@Nullable
-	default PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName)
-			throws BeansException {
-
+	default PropertyValues postProcessProperties(PropertyValues pvs,
+												 Object bean,
+												 String beanName) throws BeansException {
 		return null;
 	}
 
 	/**
+	 * 在工厂将它们应用于给定 Bean 之前，对给定属性值进行后处理
+	 * 允许检查是否满足所有依赖关系，例如基于 Bean 属性设置器上的 Required 注解
+	 *
 	 * Post-process the given property values before the factory applies them
 	 * to the given bean. Allows for checking whether all dependencies have been
 	 * satisfied, for example based on a "Required" annotation on bean property setters.

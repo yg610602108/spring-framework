@@ -17,6 +17,8 @@
 package org.springframework.context;
 
 /**
+ * 可能参与阶段性过程（例如生命周期管理）的对象的接口
+ *
  * Interface for objects that may participate in a phased
  * process such as lifecycle management.
  *
@@ -27,6 +29,8 @@ package org.springframework.context;
 public interface Phased {
 
 	/**
+	 * 返回此对象的相位值
+	 *
 	 * Return the phase value of this object.
 	 */
 	int getPhase();

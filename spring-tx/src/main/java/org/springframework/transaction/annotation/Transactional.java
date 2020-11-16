@@ -16,15 +16,11 @@
 
 package org.springframework.transaction.annotation;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.interceptor.AbstractFallbackTransactionAttributeSource;
+
+import java.lang.annotation.*;
 
 /**
  * Describes a transaction attribute on an individual method or on a class.
@@ -61,6 +57,17 @@ import org.springframework.transaction.TransactionDefinition;
 @Inherited
 @Documented
 public @interface Transactional {
+
+	/**
+	 * 可以加在方法或类/接口上
+	 *
+	 * 不管是加在类/接口上，或类/接口的方法上，方法抛出异常，事务都会回滚
+	 *
+	 * 跟解析顺序有关？
+	 * 先在此方法上面找，如果没找到，在此方法的类上面找，如果没找到，再去接口方法上面找，如果没找到，再去接口上面找
+	 *
+	 * @see AbstractFallbackTransactionAttributeSource#computeTransactionAttribute(java.lang.reflect.Method, java.lang.Class)
+	 **/
 
 	/**
 	 * Alias for {@link #transactionManager}.

@@ -46,7 +46,6 @@ public class BeanDefinitionHolder implements BeanMetadataElement {
 	@Nullable
 	private final String[] aliases;
 
-
 	/**
 	 * Create a new BeanDefinitionHolder.
 	 * @param beanDefinition the BeanDefinition to wrap
@@ -83,7 +82,6 @@ public class BeanDefinitionHolder implements BeanMetadataElement {
 		this.beanName = beanDefinitionHolder.getBeanName();
 		this.aliases = beanDefinitionHolder.getAliases();
 	}
-
 
 	/**
 	 * Return the wrapped BeanDefinition.
@@ -163,7 +161,6 @@ public class BeanDefinitionHolder implements BeanMetadataElement {
 	public String toString() {
 		return getLongDescription();
 	}
-
 
 	@Override
 	public boolean equals(Object other) {

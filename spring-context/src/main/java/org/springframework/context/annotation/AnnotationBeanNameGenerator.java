@@ -16,10 +16,6 @@
 
 package org.springframework.context.annotation;
 
-import java.beans.Introspector;
-import java.util.Map;
-import java.util.Set;
-
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -30,6 +26,10 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
+
+import java.beans.Introspector;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * {@link org.springframework.beans.factory.support.BeanNameGenerator}
@@ -74,7 +74,8 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 
 
 	@Override
-	public String generateBeanName(BeanDefinition definition, BeanDefinitionRegistry registry) {
+	public String generateBeanName(BeanDefinition definition,
+								   BeanDefinitionRegistry registry) {
 		if (definition instanceof AnnotatedBeanDefinition) {
 			String beanName = determineBeanNameFromAnnotation((AnnotatedBeanDefinition) definition);
 			if (StringUtils.hasText(beanName)) {
@@ -98,7 +99,8 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 		String beanName = null;
 		for (String type : types) {
 			AnnotationAttributes attributes = AnnotationConfigUtils.attributesFor(amd, type);
-			if (attributes != null && isStereotypeWithNameValue(type, amd.getMetaAnnotationTypes(type), attributes)) {
+			if (attributes != null
+					&& isStereotypeWithNameValue(type, amd.getMetaAnnotationTypes(type), attributes)) {
 				Object value = attributes.get("value");
 				if (value instanceof String) {
 					String strVal = (String) value;
@@ -124,7 +126,8 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 	 * @return whether the annotation qualifies as a stereotype with component name
 	 */
 	protected boolean isStereotypeWithNameValue(String annotationType,
-			Set<String> metaAnnotationTypes, @Nullable Map<String, Object> attributes) {
+												Set<String> metaAnnotationTypes,
+												@Nullable Map<String, Object> attributes) {
 
 		boolean isStereotype = annotationType.equals(COMPONENT_ANNOTATION_CLASSNAME) ||
 				metaAnnotationTypes.contains(COMPONENT_ANNOTATION_CLASSNAME) ||
@@ -141,7 +144,8 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 	 * @param registry the registry that the given bean definition is being registered with
 	 * @return the default bean name (never {@code null})
 	 */
-	protected String buildDefaultBeanName(BeanDefinition definition, BeanDefinitionRegistry registry) {
+	protected String buildDefaultBeanName(BeanDefinition definition,
+										  BeanDefinitionRegistry registry) {
 		return buildDefaultBeanName(definition);
 	}
 

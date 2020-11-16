@@ -72,7 +72,6 @@ public interface SmartLifecycle extends Lifecycle, Phased {
 	 */
 	int DEFAULT_PHASE = Integer.MAX_VALUE;
 
-
 	/**
 	 * Returns {@code true} if this {@code Lifecycle} component should get
 	 * started automatically by the container at the time that the containing

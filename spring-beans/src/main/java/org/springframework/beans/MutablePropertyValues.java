@@ -16,22 +16,18 @@
 
 package org.springframework.beans;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.stream.Stream;
-
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
+import java.io.Serializable;
+import java.util.*;
+import java.util.stream.Stream;
+
 /**
+ * {@link PropertyValues} 接口的默认实现
+ *
+ * 允许简单地操作属性，并提供构造函数以支持从 Map 进行深度复制和构造
+ *
  * The default implementation of the {@link PropertyValues} interface.
  * Allows simple manipulation of properties, and provides constructors
  * to support deep copy and construction from a Map.
@@ -44,13 +40,22 @@ import org.springframework.util.StringUtils;
 @SuppressWarnings("serial")
 public class MutablePropertyValues implements PropertyValues, Serializable {
 
+	/**
+	 * 属性值的 List 集合
+	 *
+	 * 对应 XML 配置文件中这个标签：
+	 * <property name="XXX" value="XXX" ref="XXX"/>
+	 * 属性会封装成 PropertyValue 对象 {@link PropertyValue}
+	 **/
 	private final List<PropertyValue> propertyValueList;
 
+	/**
+	 * 记录已经处理过的属性值
+	 **/
 	@Nullable
 	private Set<String> processedProperties;
 
 	private volatile boolean converted = false;
-
 
 	/**
 	 * Creates a new empty MutablePropertyValues object.
@@ -247,7 +252,6 @@ public class MutablePropertyValues implements PropertyValues, Serializable {
 	public void removePropertyValue(String propertyName) {
 		this.propertyValueList.remove(getPropertyValue(propertyName));
 	}
-
 
 	@Override
 	public Iterator<PropertyValue> iterator() {

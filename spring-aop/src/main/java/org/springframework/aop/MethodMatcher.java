@@ -48,6 +48,8 @@ import java.lang.reflect.Method;
 public interface MethodMatcher {
 
 	/**
+	 * 执行静态检查给定的方法是否匹配
+	 *
 	 * Perform static checking whether the given method matches.
 	 * <p>If this returns {@code false} or if the {@link #isRuntime()}
 	 * method returns {@code false}, no runtime check (i.e. no
@@ -60,6 +62,8 @@ public interface MethodMatcher {
 	boolean matches(Method method, Class<?> targetClass);
 
 	/**
+	 * 此 MethodMatcher 是否动态
+	 *
 	 * Is this MethodMatcher dynamic, that is, must a final call be made on the
 	 * {@link #matches(java.lang.reflect.Method, Class, Object[])} method at
 	 * runtime even if the 2-arg matches method returns {@code true}?
@@ -72,6 +76,8 @@ public interface MethodMatcher {
 	boolean isRuntime();
 
 	/**
+	 * 检查此方法是否存在运行时（动态）匹配，该匹配必须静态匹配
+	 *
 	 * Check whether there a runtime (dynamic) match for this method,
 	 * which must have matched statically.
 	 * <p>This method is invoked only if the 2-arg matches method returns
@@ -87,8 +93,9 @@ public interface MethodMatcher {
 	 */
 	boolean matches(Method method, Class<?> targetClass, Object... args);
 
-
 	/**
+	 * 符合所有方法的规范实例
+	 *
 	 * Canonical instance that matches all methods.
 	 */
 	MethodMatcher TRUE = TrueMethodMatcher.INSTANCE;

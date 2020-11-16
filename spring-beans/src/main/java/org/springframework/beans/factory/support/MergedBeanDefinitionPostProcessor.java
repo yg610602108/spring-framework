@@ -44,7 +44,9 @@ public interface MergedBeanDefinitionPostProcessor extends BeanPostProcessor {
 	 * @param beanName the name of the bean
 	 * @see AbstractAutowireCapableBeanFactory#applyMergedBeanDefinitionPostProcessors
 	 */
-	void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName);
+	void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition,
+										 Class<?> beanType,
+										 String beanName);
 
 	/**
 	 * A notification that the bean definition for the specified name has been reset,
@@ -54,7 +56,6 @@ public interface MergedBeanDefinitionPostProcessor extends BeanPostProcessor {
 	 * @since 5.1
 	 * @see DefaultListableBeanFactory#resetBeanDefinition
 	 */
-	default void resetBeanDefinition(String beanName) {
-	}
+	default void resetBeanDefinition(String beanName) { }
 
 }

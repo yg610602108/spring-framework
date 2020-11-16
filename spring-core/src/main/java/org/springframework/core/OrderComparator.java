@@ -16,12 +16,12 @@
 
 package org.springframework.core;
 
+import org.springframework.lang.Nullable;
+import org.springframework.util.ObjectUtils;
+
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-
-import org.springframework.lang.Nullable;
-import org.springframework.util.ObjectUtils;
 
 /**
  * {@link Comparator} implementation for {@link Ordered} objects, sorting
@@ -68,7 +68,9 @@ public class OrderComparator implements Comparator<Object> {
 		return doCompare(o1, o2, null);
 	}
 
-	private int doCompare(@Nullable Object o1, @Nullable Object o2, @Nullable OrderSourceProvider sourceProvider) {
+	private int doCompare(@Nullable Object o1,
+						  @Nullable Object o2,
+						  @Nullable OrderSourceProvider sourceProvider) {
 		boolean p1 = (o1 instanceof PriorityOrdered);
 		boolean p2 = (o2 instanceof PriorityOrdered);
 		if (p1 && !p2) {
@@ -90,7 +92,8 @@ public class OrderComparator implements Comparator<Object> {
 	 * @param obj the object to check
 	 * @return the order value, or {@code Ordered.LOWEST_PRECEDENCE} as fallback
 	 */
-	private int getOrder(@Nullable Object obj, @Nullable OrderSourceProvider sourceProvider) {
+	private int getOrder(@Nullable Object obj,
+						 @Nullable OrderSourceProvider sourceProvider) {
 		Integer order = null;
 		if (obj != null && sourceProvider != null) {
 			Object orderSource = sourceProvider.getOrderSource(obj);
@@ -220,6 +223,7 @@ public class OrderComparator implements Comparator<Object> {
 		 */
 		@Nullable
 		Object getOrderSource(Object obj);
+
 	}
 
 }

@@ -16,9 +16,6 @@
 
 package org.apache.commons.logging;
 
-import java.io.Serializable;
-import java.util.logging.LogRecord;
-
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.spi.ExtendedLogger;
@@ -26,6 +23,9 @@ import org.apache.logging.log4j.spi.LoggerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.spi.LocationAwareLogger;
+
+import java.io.Serializable;
+import java.util.logging.LogRecord;
 
 /**
  * Spring's common JCL adapter behind {@link LogFactory} and {@link LogFactoryService}.
@@ -121,6 +121,7 @@ final class LogAdapter {
 		public static Log createLog(String name) {
 			return new Log4jLog(name);
 		}
+
 	}
 
 
@@ -135,6 +136,7 @@ final class LogAdapter {
 		public static Log createLog(String name) {
 			return new Slf4jLog<>(LoggerFactory.getLogger(name));
 		}
+
 	}
 
 
@@ -143,6 +145,7 @@ final class LogAdapter {
 		public static Log createLog(String name) {
 			return new JavaUtilLog(name);
 		}
+
 	}
 
 
@@ -265,6 +268,7 @@ final class LogAdapter {
 				this.logger.logIfEnabled(FQCN, level, null, message, exception);
 			}
 		}
+
 	}
 
 
@@ -375,6 +379,7 @@ final class LogAdapter {
 		protected Object readResolve() {
 			return Slf4jAdapter.createLog(this.name);
 		}
+
 	}
 
 
@@ -471,6 +476,7 @@ final class LogAdapter {
 		protected Object readResolve() {
 			return Slf4jAdapter.createLocationAwareLog(this.name);
 		}
+
 	}
 
 
@@ -578,6 +584,7 @@ final class LogAdapter {
 		protected Object readResolve() {
 			return new JavaUtilLog(this.name);
 		}
+
 	}
 
 
@@ -655,6 +662,7 @@ final class LogAdapter {
 			serialized.setThrown(getThrown());
 			return serialized;
 		}
+
 	}
 
 }

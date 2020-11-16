@@ -16,12 +16,7 @@
 
 package org.springframework.util;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.UndeclaredThrowableException;
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -496,6 +491,8 @@ public abstract class ReflectionUtils {
 	}
 
 	/**
+	 * 确定给定的方法是否为 equals 方法
+	 *
 	 * Determine whether the given method is an "equals" method.
 	 * @see java.lang.Object#equals(Object)
 	 */
@@ -508,6 +505,8 @@ public abstract class ReflectionUtils {
 	}
 
 	/**
+	 * 确定给定的方法是否为 hashCode 方法
+	 *
 	 * Determine whether the given method is a "hashCode" method.
 	 * @see java.lang.Object#hashCode()
 	 */
@@ -516,6 +515,8 @@ public abstract class ReflectionUtils {
 	}
 
 	/**
+	 * 确定给定的方法是否为 toString 方法
+	 *
 	 * Determine whether the given method is a "toString" method.
 	 * @see java.lang.Object#toString()
 	 */
@@ -549,6 +550,10 @@ public abstract class ReflectionUtils {
 	}
 
 	/**
+	 * 使给定的方法可访问，并在必要时明确将其设置为可访问
+	 * 仅在实际需要时才调用{@link AccessibleObject#setAccessible(boolean)}方法
+	 * 以避免与 JVM SecurityManager 发生不必要的冲突（如果处于活动状态）
+	 *
 	 * Make the given method accessible, explicitly setting it accessible if
 	 * necessary. The {@code setAccessible(true)} method is only called
 	 * when actually necessary, to avoid unnecessary conflicts with a JVM
@@ -558,8 +563,8 @@ public abstract class ReflectionUtils {
 	 */
 	@SuppressWarnings("deprecation")  // on JDK 9
 	public static void makeAccessible(Method method) {
-		if ((!Modifier.isPublic(method.getModifiers()) ||
-				!Modifier.isPublic(method.getDeclaringClass().getModifiers())) && !method.isAccessible()) {
+		if ((!Modifier.isPublic(method.getModifiers()) || !Modifier.isPublic(method.getDeclaringClass().getModifiers()))
+				&& !method.isAccessible()) {
 			method.setAccessible(true);
 		}
 	}

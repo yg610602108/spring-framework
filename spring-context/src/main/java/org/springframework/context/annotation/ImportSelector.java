@@ -19,6 +19,8 @@ package org.springframework.context.annotation;
 import org.springframework.core.type.AnnotationMetadata;
 
 /**
+ * Spring 框架提供的扩展接口
+ *
  * Interface to be implemented by types that determine which @{@link Configuration}
  * class(es) should be imported based on a given selection criteria, usually one or
  * more annotation attributes.
@@ -48,6 +50,10 @@ import org.springframework.core.type.AnnotationMetadata;
 public interface ImportSelector {
 
 	/**
+	 * 通过这个方法可以返回全限定名数组，之后 Spring 会帮助解析为 BeanDefinition
+	 * 可以动态的添加 BeanDefinition 到 Spring 的 BeanFactory 中
+	 * 但是这个类不能动态的改变，在这个类没有任何改变的情况下，可以使用这种方式注入，否则使用 ImportBeanDefinitionRegistrar
+	 *
 	 * Select and return the names of which class(es) should be imported based on
 	 * the {@link AnnotationMetadata} of the importing @{@link Configuration} class.
 	 */

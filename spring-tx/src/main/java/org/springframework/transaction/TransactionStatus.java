@@ -39,6 +39,8 @@ import java.io.Flushable;
 public interface TransactionStatus extends TransactionExecution, SavepointManager, Flushable {
 
 	/**
+	 * 返回此事务是否在内部携带保存点，即是否已基于保存点将其创建为嵌套事务
+	 *
 	 * Return whether this transaction internally carries a savepoint,
 	 * that is, has been created as nested transaction based on a savepoint.
 	 * <p>This method is mainly here for diagnostic purposes, alongside
@@ -52,6 +54,9 @@ public interface TransactionStatus extends TransactionExecution, SavepointManage
 	boolean hasSavepoint();
 
 	/**
+	 * 如果适用，将基础会话刷新到数据存储区
+	 * 例如，所有受影响的 Hibernate / JPA 会话
+	 *
 	 * Flush the underlying session to the datastore, if applicable:
 	 * for example, all affected Hibernate/JPA sessions.
 	 * <p>This is effectively just a hint and may be a no-op if the underlying

@@ -33,7 +33,6 @@ final class ScopedProxyCreator {
 	private ScopedProxyCreator() {
 	}
 
-
 	public static BeanDefinitionHolder createScopedProxy(
 			BeanDefinitionHolder definitionHolder, BeanDefinitionRegistry registry, boolean proxyTargetClass) {
 

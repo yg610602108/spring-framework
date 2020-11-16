@@ -16,9 +16,9 @@
 
 package org.springframework.context.event;
 
-import java.lang.reflect.Method;
-
 import org.springframework.context.ApplicationListener;
+
+import java.lang.reflect.Method;
 
 /**
  * Strategy interface for creating {@link ApplicationListener} for methods
@@ -43,6 +43,7 @@ public interface EventListenerFactory {
 	 * @param method the {@link EventListener} annotated method
 	 * @return an application listener, suitable to invoke the specified method
 	 */
-	ApplicationListener<?> createApplicationListener(String beanName, Class<?> type, Method method);
+	ApplicationListener<?> createApplicationListener(String beanName,
+													 Class<?> type, Method method);
 
 }

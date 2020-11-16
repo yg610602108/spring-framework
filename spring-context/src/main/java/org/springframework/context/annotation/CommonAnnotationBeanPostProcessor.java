@@ -16,35 +16,6 @@
 
 package org.springframework.context.annotation;
 
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.io.Serializable;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Member;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
-import javax.ejb.EJB;
-import javax.xml.namespace.QName;
-import javax.xml.ws.Service;
-import javax.xml.ws.WebServiceClient;
-import javax.xml.ws.WebServiceRef;
-
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.BeanUtils;
@@ -55,11 +26,7 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor;
 import org.springframework.beans.factory.annotation.InjectionMetadata;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.beans.factory.config.DependencyDescriptor;
-import org.springframework.beans.factory.config.EmbeddedValueResolver;
-import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
+import org.springframework.beans.factory.config.*;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.core.BridgeMethodResolver;
 import org.springframework.core.MethodParameter;
@@ -67,11 +34,25 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.jndi.support.SimpleJndiBeanFactory;
 import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
-import org.springframework.util.StringValueResolver;
+import org.springframework.util.*;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
+import javax.ejb.EJB;
+import javax.xml.namespace.QName;
+import javax.xml.ws.Service;
+import javax.xml.ws.WebServiceClient;
+import javax.xml.ws.WebServiceRef;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.io.Serializable;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * {@link org.springframework.beans.factory.config.BeanPostProcessor} implementation
@@ -182,7 +163,6 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 		}
 	}
 
-
 	private final Set<String> ignoredResourceTypes = new HashSet<>(1);
 
 	private boolean fallbackToDefaultTypeMatch = true;
@@ -200,8 +180,8 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 	@Nullable
 	private transient StringValueResolver embeddedValueResolver;
 
-	private final transient Map<String, InjectionMetadata> injectionMetadataCache = new ConcurrentHashMap<>(256);
-
+	private final transient Map<String, InjectionMetadata> injectionMetadataCache =
+			new ConcurrentHashMap<>(256);
 
 	/**
 	 * Create a new CommonAnnotationBeanPostProcessor,
@@ -305,7 +285,9 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 
 
 	@Override
-	public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
+	public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition,
+												Class<?> beanType,
+												String beanName) {
 		super.postProcessMergedBeanDefinition(beanDefinition, beanType, beanName);
 		InjectionMetadata metadata = findResourceMetadata(beanName, beanType, null);
 		metadata.checkConfigMembers(beanDefinition);
@@ -317,17 +299,21 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 	}
 
 	@Override
-	public Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) {
+	public Object postProcessBeforeInstantiation(Class<?> beanClass,
+												 String beanName) {
 		return null;
 	}
 
 	@Override
-	public boolean postProcessAfterInstantiation(Object bean, String beanName) {
+	public boolean postProcessAfterInstantiation(Object bean,
+												 String beanName) {
 		return true;
 	}
 
 	@Override
-	public PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName) {
+	public PropertyValues postProcessProperties(PropertyValues pvs,
+												Object bean,
+												String beanName) {
 		InjectionMetadata metadata = findResourceMetadata(beanName, bean.getClass(), pvs);
 		try {
 			metadata.inject(bean, beanName, pvs);
@@ -340,14 +326,16 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 
 	@Deprecated
 	@Override
-	public PropertyValues postProcessPropertyValues(
-			PropertyValues pvs, PropertyDescriptor[] pds, Object bean, String beanName) {
-
+	public PropertyValues postProcessPropertyValues(PropertyValues pvs,
+													PropertyDescriptor[] pds,
+													Object bean,
+													String beanName) {
 		return postProcessProperties(pvs, bean, beanName);
 	}
 
-
-	private InjectionMetadata findResourceMetadata(String beanName, final Class<?> clazz, @Nullable PropertyValues pvs) {
+	private InjectionMetadata findResourceMetadata(String beanName,
+												   final Class<?> clazz,
+												   @Nullable PropertyValues pvs) {
 		// Fall back to class name as cache key, for backwards compatibility with custom callers.
 		String cacheKey = (StringUtils.hasLength(beanName) ? beanName : clazz.getName());
 		// Quick check on the concurrent map first, with minimal locking.
@@ -364,6 +352,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 				}
 			}
 		}
+
 		return metadata;
 	}
 
@@ -461,22 +450,32 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 	 * @see #getResource
 	 * @see Lazy
 	 */
-	protected Object buildLazyResourceProxy(final LookupElement element, final @Nullable String requestingBeanName) {
+	protected Object buildLazyResourceProxy(final LookupElement element,
+											final @Nullable String requestingBeanName) {
+
 		TargetSource ts = new TargetSource() {
+
 			@Override
 			public Class<?> getTargetClass() {
+
 				return element.lookupType;
 			}
+
 			@Override
 			public boolean isStatic() {
+
 				return false;
 			}
+
 			@Override
 			public Object getTarget() {
+
 				return getResource(element, requestingBeanName);
 			}
+
 			@Override
 			public void releaseTarget(Object target) {
+
 			}
 		};
 		ProxyFactory pf = new ProxyFactory();
@@ -496,9 +495,8 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 	 * @return the resource object (never {@code null})
 	 * @throws NoSuchBeanDefinitionException if no corresponding target resource found
 	 */
-	protected Object getResource(LookupElement element, @Nullable String requestingBeanName)
-			throws NoSuchBeanDefinitionException {
-
+	protected Object getResource(LookupElement element,
+								 @Nullable String requestingBeanName) throws NoSuchBeanDefinitionException {
 		if (StringUtils.hasLength(element.mappedName)) {
 			return this.jndiFactory.getBean(element.mappedName, element.lookupType);
 		}
@@ -521,9 +519,9 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 	 * @return the resource object (never {@code null})
 	 * @throws NoSuchBeanDefinitionException if no corresponding target resource found
 	 */
-	protected Object autowireResource(BeanFactory factory, LookupElement element, @Nullable String requestingBeanName)
-			throws NoSuchBeanDefinitionException {
-
+	protected Object autowireResource(BeanFactory factory,
+									  LookupElement element,
+									  @Nullable String requestingBeanName) throws NoSuchBeanDefinitionException {
 		Object resource;
 		Set<String> autowiredBeanNames;
 		String name = element.name;
@@ -605,8 +603,8 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 				return new LookupDependencyDescriptor((Method) this.member, this.lookupType);
 			}
 		}
-	}
 
+	}
 
 	/**
 	 * Class representing injection information about an annotated field
@@ -616,7 +614,10 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 
 		private final boolean lazyLookup;
 
-		public ResourceElement(Member member, AnnotatedElement ae, @Nullable PropertyDescriptor pd) {
+		public ResourceElement(Member member,
+							   AnnotatedElement ae,
+							   @Nullable PropertyDescriptor pd) {
+
 			super(member, pd);
 			Resource resource = ae.getAnnotation(Resource.class);
 			String resourceName = resource.name();
@@ -647,12 +648,13 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 		}
 
 		@Override
-		protected Object getResourceToInject(Object target, @Nullable String requestingBeanName) {
+		protected Object getResourceToInject(Object target,
+											 @Nullable String requestingBeanName) {
 			return (this.lazyLookup ? buildLazyResourceProxy(this, requestingBeanName) :
 					getResource(this, requestingBeanName));
 		}
-	}
 
+	}
 
 	/**
 	 * Class representing injection information about an annotated field
@@ -664,7 +666,9 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 
 		private final String wsdlLocation;
 
-		public WebServiceRefElement(Member member, AnnotatedElement ae, @Nullable PropertyDescriptor pd) {
+		public WebServiceRefElement(Member member,
+									AnnotatedElement ae,
+									@Nullable PropertyDescriptor pd) {
 			super(member, pd);
 			WebServiceRef resource = ae.getAnnotation(WebServiceRef.class);
 			String resourceName = resource.name();
@@ -696,7 +700,8 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 		}
 
 		@Override
-		protected Object getResourceToInject(Object target, @Nullable String requestingBeanName) {
+		protected Object getResourceToInject(Object target,
+											 @Nullable String requestingBeanName) {
 			Service service;
 			try {
 				service = (Service) getResource(this, requestingBeanName);
@@ -736,6 +741,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 			}
 			return service.getPort(this.elementType);
 		}
+
 	}
 
 
@@ -755,7 +761,9 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 			this.isDefaultName = !StringUtils.hasLength(resourceName);
 			if (this.isDefaultName) {
 				resourceName = this.member.getName();
-				if (this.member instanceof Method && resourceName.startsWith("set") && resourceName.length() > 3) {
+				if (this.member instanceof Method
+						&& resourceName.startsWith("set")
+						&& resourceName.length() > 3) {
 					resourceName = Introspector.decapitalize(resourceName.substring(3));
 				}
 			}
@@ -792,6 +800,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 			// JNDI name lookup - may still go to a local BeanFactory.
 			return getResource(this, requestingBeanName);
 		}
+
 	}
 
 
@@ -817,6 +826,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 		public Class<?> getDependencyType() {
 			return this.lookupType;
 		}
+
 	}
 
 }

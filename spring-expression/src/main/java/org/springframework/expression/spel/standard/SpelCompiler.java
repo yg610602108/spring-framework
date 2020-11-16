@@ -16,14 +16,8 @@
 
 package org.springframework.expression.spel.standard;
 
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.asm.ClassWriter;
 import org.springframework.asm.MethodVisitor;
 import org.springframework.asm.Opcodes;
@@ -37,6 +31,11 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ConcurrentReferenceHashMap;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
+
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A SpelCompiler will take a regular parsed expression and create (and load) a class
@@ -81,11 +80,9 @@ public final class SpelCompiler implements Opcodes {
 	// Counter suffix for generated classes within this SpelCompiler instance
 	private final AtomicInteger suffixId = new AtomicInteger(1);
 
-
 	private SpelCompiler(@Nullable ClassLoader classloader) {
 		this.ccl = new ChildClassLoader(classloader);
 	}
-
 
 	/**
 	 * Attempt compilation of the supplied expression. A check is made to see
@@ -150,7 +147,7 @@ public final class SpelCompiler implements Opcodes {
 		// Create getValue() method
 		mv = cw.visitMethod(ACC_PUBLIC, "getValue",
 				"(Ljava/lang/Object;Lorg/springframework/expression/EvaluationContext;)Ljava/lang/Object;", null,
-				new String[ ]{"org/springframework/expression/EvaluationException"});
+				new String[]{"org/springframework/expression/EvaluationException"});
 		mv.visitCode();
 
 		CodeFlow cf = new CodeFlow(className, cw);
@@ -265,8 +262,8 @@ public final class SpelCompiler implements Opcodes {
 			this.classesDefinedCount++;
 			return clazz;
 		}
-	}
 
+	}
 
 	private class ExpressionClassWriter extends ClassWriter {
 
@@ -278,6 +275,7 @@ public final class SpelCompiler implements Opcodes {
 		protected ClassLoader getClassLoader() {
 			return ccl;
 		}
+
 	}
 
 }

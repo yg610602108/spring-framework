@@ -128,6 +128,8 @@ public abstract class TransactionSynchronizationManager {
 	}
 
 	/**
+	 * 为绑定到当前线程的给定键检索资源
+	 *
 	 * Retrieve a resource for the given key that is bound to the current thread.
 	 * @param key the key to check (usually the resource factory)
 	 * @return a value bound to the current thread (usually the active
@@ -136,16 +138,21 @@ public abstract class TransactionSynchronizationManager {
 	 */
 	@Nullable
 	public static Object getResource(Object key) {
+		// 如果需要则拆包资源
 		Object actualKey = TransactionSynchronizationUtils.unwrapResourceIfNecessary(key);
+		// 获取给定键绑定的资源的值
 		Object value = doGetResource(actualKey);
 		if (value != null && logger.isTraceEnabled()) {
 			logger.trace("Retrieved value [" + value + "] for key [" + actualKey + "] bound to thread [" +
 					Thread.currentThread().getName() + "]");
 		}
+
 		return value;
 	}
 
 	/**
+	 * 实际上检查为给定键绑定的资源的值
+	 *
 	 * Actually check the value of the resource that is bound for the given key.
 	 */
 	@Nullable
@@ -168,6 +175,8 @@ public abstract class TransactionSynchronizationManager {
 	}
 
 	/**
+	 * 将给定键的给定资源绑定到当前线程
+	 *
 	 * Bind the given resource for the given key to the current thread.
 	 * @param key the key to bind the value to (usually the resource factory)
 	 * @param value the value to bind (usually the active resource object)
@@ -199,6 +208,8 @@ public abstract class TransactionSynchronizationManager {
 	}
 
 	/**
+	 * 从当前线程中取消绑定给定键的资源
+	 *
 	 * Unbind a resource for the given key from the current thread.
 	 * @param key the key to unbind (usually the resource factory)
 	 * @return the previously bound value (usually the active resource object)
@@ -227,6 +238,8 @@ public abstract class TransactionSynchronizationManager {
 	}
 
 	/**
+	 * 实际上删除为给定键绑定的资源的值
+	 *
 	 * Actually remove the value of the resource that is bound for the given key.
 	 */
 	@Nullable

@@ -16,9 +16,6 @@
 
 package org.springframework.context.annotation;
 
-import java.lang.annotation.Annotation;
-import java.util.function.Supplier;
-
 import org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionCustomizer;
@@ -32,6 +29,9 @@ import org.springframework.core.env.EnvironmentCapable;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import java.lang.annotation.Annotation;
+import java.util.function.Supplier;
 
 /**
  * Convenient adapter for programmatic registration of annotated bean classes.
@@ -79,11 +79,18 @@ public class AnnotatedBeanDefinitionReader {
 	 * profiles.
 	 * @since 3.1
 	 */
-	public AnnotatedBeanDefinitionReader(BeanDefinitionRegistry registry, Environment environment) {
+	public AnnotatedBeanDefinitionReader(BeanDefinitionRegistry registry,
+										 Environment environment) {
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 		Assert.notNull(environment, "Environment must not be null");
 		this.registry = registry;
+		/**
+		 * 初始化注解解析器
+		 **/
 		this.conditionEvaluator = new ConditionEvaluator(registry, environment, null);
+		/**
+		 * 将 Spring 内部的注解后置处理器组件注册到 BeanDefinitionRegistry 中
+		 **/
 		AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
 	}
 
@@ -154,7 +161,8 @@ public class AnnotatedBeanDefinitionReader {
 	 * (or {@code null} for generating a default bean name)
 	 * @since 5.2
 	 */
-	public void registerBean(Class<?> annotatedClass, @Nullable String name) {
+	public void registerBean(Class<?> annotatedClass,
+							 @Nullable String name) {
 		doRegisterBean(annotatedClass, name, null, null, null);
 	}
 
@@ -166,7 +174,8 @@ public class AnnotatedBeanDefinitionReader {
 	 * in addition to qualifiers at the bean class level
 	 */
 	@SuppressWarnings("unchecked")
-	public void registerBean(Class<?> annotatedClass, Class<? extends Annotation>... qualifiers) {
+	public void registerBean(Class<?> annotatedClass,
+							 Class<? extends Annotation>... qualifiers) {
 		doRegisterBean(annotatedClass, null, qualifiers, null, null);
 	}
 
@@ -180,8 +189,9 @@ public class AnnotatedBeanDefinitionReader {
 	 * in addition to qualifiers at the bean class level
 	 */
 	@SuppressWarnings("unchecked")
-	public void registerBean(Class<?> annotatedClass, @Nullable String name,
-			Class<? extends Annotation>... qualifiers) {
+	public void registerBean(Class<?> annotatedClass,
+							 @Nullable String name,
+							 Class<? extends Annotation>... qualifiers) {
 
 		doRegisterBean(annotatedClass, name, qualifiers, null, null);
 	}
@@ -195,7 +205,8 @@ public class AnnotatedBeanDefinitionReader {
 	 * (may be {@code null})
 	 * @since 5.0
 	 */
-	public <T> void registerBean(Class<T> annotatedClass, @Nullable Supplier<T> supplier) {
+	public <T> void registerBean(Class<T> annotatedClass,
+								 @Nullable Supplier<T> supplier) {
 		doRegisterBean(annotatedClass, null, null, supplier, null);
 	}
 
@@ -210,7 +221,9 @@ public class AnnotatedBeanDefinitionReader {
 	 * (may be {@code null})
 	 * @since 5.0
 	 */
-	public <T> void registerBean(Class<T> annotatedClass, @Nullable String name, @Nullable Supplier<T> supplier) {
+	public <T> void registerBean(Class<T> annotatedClass,
+								 @Nullable String name,
+								 @Nullable Supplier<T> supplier) {
 		doRegisterBean(annotatedClass, name, null, supplier, null);
 	}
 
@@ -226,13 +239,17 @@ public class AnnotatedBeanDefinitionReader {
 	 * {@link BeanDefinition}, e.g. setting a lazy-init or primary flag
 	 * @since 5.2
 	 */
-	public <T> void registerBean(Class<T> annotatedClass, @Nullable String name, @Nullable Supplier<T> supplier,
-			BeanDefinitionCustomizer... customizers) {
+	public <T> void registerBean(Class<T> annotatedClass,
+								 @Nullable String name,
+								 @Nullable Supplier<T> supplier,
+								 BeanDefinitionCustomizer... customizers) {
 
 		doRegisterBean(annotatedClass, name, null, supplier, customizers);
 	}
 
 	/**
+	 * 将给定的 Bean 类注册为 Bean，从类声明的注释中派生其元数据
+	 *
 	 * Register a bean from the given bean class, deriving its metadata from
 	 * class-declared annotations.
 	 * @param annotatedClass the class of the bean
@@ -245,45 +262,96 @@ public class AnnotatedBeanDefinitionReader {
 	 * {@link BeanDefinition}, e.g. setting a lazy-init or primary flag
 	 * @since 5.0
 	 */
-	private <T> void doRegisterBean(Class<T> annotatedClass, @Nullable String name,
-			@Nullable Class<? extends Annotation>[] qualifiers, @Nullable Supplier<T> supplier,
-			@Nullable BeanDefinitionCustomizer[] customizers) {
+	private <T> void doRegisterBean(Class<T> annotatedClass,
+									@Nullable String name,
+									@Nullable Class<? extends Annotation>[] qualifiers,
+									@Nullable Supplier<T> supplier,
+									@Nullable BeanDefinitionCustomizer[] customizers) {
 
+		// 根据指定的 Bean 创建一个 AnnotatedGenericBeanDefinition
 		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(annotatedClass);
+		// 根据 @Conditional 注解确定是否应跳过注册
 		if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
 			return;
 		}
 
+		// 指定创建 Bean 实例的回调方法，此时为 null
 		abd.setInstanceSupplier(supplier);
+		// 解析类的作用域元数据
 		ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(abd);
+		// 添加类的作用域元数据
 		abd.setScope(scopeMetadata.getScopeName());
+		/**
+		 * 生成 BeanNamePriority
+		 * 调用 AnnotationBeanNameGenerator.generateBeanName()
+		 */
 		String beanName = (name != null ? name : this.beanNameGenerator.generateBeanName(abd, this.registry));
 
+		/**
+		 * 处理类当中的通用注解
+		 * 主要处理 @Lazy @DependsOn @Primary @Role @Description 注解
+		 * 处理完成之后将值赋给到 AnnotatedGenericBeanDefinition 对应的属性中
+		 */
 		AnnotationConfigUtils.processCommonDefinitionAnnotations(abd);
+		/**
+		 * 如果在向容器注册 AnnotatedGenericBeanDefinition 时，使用了额外的限定符注解则解析
+		 * byName 和 qualifiers 变量是 Annotation 类型的数组，里面不仅存了 @Qualifier 注解
+		 * 所以 Spring 遍历这个数组判断是否加了指定注解
+		 *
+		 * 此时 qualifiers 为 null，if 语句不执行
+		 */
 		if (qualifiers != null) {
 			for (Class<? extends Annotation> qualifier : qualifiers) {
 				if (Primary.class == qualifier) {
+					// 设置 primary 属性值
 					abd.setPrimary(true);
 				}
 				else if (Lazy.class == qualifier) {
+					// 设置 lazyInit 属性值
 					abd.setLazyInit(true);
 				}
 				else {
+					/**
+					 * 如果使用了除 @Primary 和 @Lazy 以外的其他注解
+					 * 则为该 Bean 添加一个根据名字自动装配的限定符
+					 */
 					abd.addQualifier(new AutowireCandidateQualifier(qualifier));
 				}
 			}
 		}
+
+		/**
+		 * 如果存在一个或多个用于自定义工厂的回调
+		 *
+		 * 此时 customizers 为 null，if 语句不执行
+		 */
 		if (customizers != null) {
 			for (BeanDefinitionCustomizer customizer : customizers) {
 				customizer.customize(abd);
 			}
 		}
 
+		/**
+		 * 获取 BeanDefinitionHolder 持有者容器
+		 * 里面包含的属性值有 beanName， beanDefinition 和 aliases 别名集合
+		 */
 		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(abd, beanName);
+		/**
+		 * 解析代理模型
+		 */
 		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
+		/**
+		 * 将最终获取到的 BeanDefinitionHolder 持有者容器中包含的信息注册给 BeanDefinitionRegistry
+		 *
+		 * AnnotationConfigApplicationContext 在初始化的时候通过调用父类的构造方法，实例化了一个 DefaultListableBeanFactory
+		 * 这一步就是把 BeanDefinitionHolder 这个数据结构中包含的信息注册到 DefaultListableBeanFactory 中
+		 *
+		 * DefaultListableBeanFactory 实现了 BeanDefinitionRegistry
+		 *
+		 * 此时传入的 @Configuration 配置类已经注册到 DefaultListableBeanFactory 工厂中
+		 */
 		BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, this.registry);
 	}
-
 
 	/**
 	 * Get the Environment from the given registry if possible, otherwise return a new

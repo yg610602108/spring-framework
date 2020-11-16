@@ -16,14 +16,6 @@
 
 package org.springframework.beans.factory.support;
 
-import java.lang.reflect.Constructor;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Supplier;
-
 import org.springframework.beans.BeanMetadataAttributeAccessor;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -36,6 +28,10 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+
+import java.lang.reflect.Constructor;
+import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * Base class for concrete, full-fledged {@link BeanDefinition} classes,
@@ -99,18 +95,24 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	public static final int AUTOWIRE_AUTODETECT = AutowireCapableBeanFactory.AUTOWIRE_AUTODETECT;
 
 	/**
+	 * 表示根本没有依赖项检查的常数
+	 *
 	 * Constant that indicates no dependency check at all.
 	 * @see #setDependencyCheck
 	 */
 	public static final int DEPENDENCY_CHECK_NONE = 0;
 
 	/**
+	 * 指示对对象引用进行依赖性检查的常数
+	 *
 	 * Constant that indicates dependency checking for object references.
 	 * @see #setDependencyCheck
 	 */
 	public static final int DEPENDENCY_CHECK_OBJECTS = 1;
 
 	/**
+	 * 指示对"简单"属性进行依赖性检查的常数
+	 *
 	 * Constant that indicates dependency checking for "simple" properties.
 	 * @see #setDependencyCheck
 	 * @see org.springframework.beans.BeanUtils#isSimpleProperty
@@ -118,6 +120,8 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	public static final int DEPENDENCY_CHECK_SIMPLE = 2;
 
 	/**
+	 * 指示对所有属性（对象引用以及"简单"属性）进行依赖性检查的常数
+	 *
 	 * Constant that indicates dependency checking for all properties
 	 * (object references as well as "simple" properties).
 	 * @see #setDependencyCheck
@@ -135,7 +139,6 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 * are "close" and "shutdown", if present on the specific bean class.
 	 */
 	public static final String INFER_METHOD = "(inferred)";
-
 
 	@Nullable
 	private volatile Object beanClass;
@@ -203,7 +206,6 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	@Nullable
 	private Resource resource;
 
-
 	/**
 	 * Create a new AbstractBeanDefinition with default settings.
 	 */
@@ -215,7 +217,8 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 * Create a new AbstractBeanDefinition with the given
 	 * constructor argument values and property values.
 	 */
-	protected AbstractBeanDefinition(@Nullable ConstructorArgumentValues cargs, @Nullable MutablePropertyValues pvs) {
+	protected AbstractBeanDefinition(@Nullable ConstructorArgumentValues cargs,
+									 @Nullable MutablePropertyValues pvs) {
 		this.constructorArgumentValues = cargs;
 		this.propertyValues = pvs;
 	}
@@ -277,7 +280,6 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 			setResourceDescription(original.getResourceDescription());
 		}
 	}
-
 
 	/**
 	 * Override settings in this bean definition (presumably a copied parent
@@ -377,7 +379,6 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 		setEnforceDestroyMethod(false);
 	}
 
-
 	/**
 	 * Specify the bean class name of this bean definition.
 	 */
@@ -409,6 +410,8 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	}
 
 	/**
+	 * 返回包装好的 Bean 类
+	 *
 	 * Return the class of the wrapped bean (assuming it is resolved already).
 	 * @return the bean class (never {@code null})
 	 * @throws IllegalStateException if the bean definition does not define a bean class,
@@ -538,7 +541,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 */
 	@Override
 	public boolean isLazyInit() {
-		return (this.lazyInit != null && this.lazyInit.booleanValue());
+		return (this.lazyInit != null && this.lazyInit);
 	}
 
 	/**
@@ -577,6 +580,9 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	}
 
 	/**
+	 * 返回解析的自动装配类型码
+	 * 将废弃的 AUTOWIRE_AUTODETECT 解析为 AUTOWIRE_CONSTRUCTOR 或者是 AUTOWIRE_BY_TYPE
+	 *
 	 * Return the resolved autowire code,
 	 * (resolving AUTOWIRE_AUTODETECT to AUTOWIRE_CONSTRUCTOR or AUTOWIRE_BY_TYPE).
 	 * @see #AUTOWIRE_AUTODETECT
@@ -584,6 +590,10 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 * @see #AUTOWIRE_BY_TYPE
 	 */
 	public int getResolvedAutowireMode() {
+		/**
+		 * 如果不是废弃的 AUTOWIRE_AUTODETECT，则直接返回
+		 * 如果是废弃的AUTOWIRE_AUTODETECT，且是无参构造器则解析为 AUTOWIRE_BY_TYPE，否则解析为 AUTOWIRE_CONSTRUCTOR
+		 **/
 		if (this.autowireMode == AUTOWIRE_AUTODETECT) {
 			// Work out whether to apply setter autowiring or constructor autowiring.
 			// If it has a no-arg constructor it's deemed to be setter autowiring,
@@ -860,6 +870,8 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	}
 
 	/**
+	 * 返回此 Bean 的属性值对象（永远不为空），默认是 MutablePropertyValues
+	 *
 	 * Return property values for this bean (never {@code null}).
 	 */
 	@Override
@@ -1088,7 +1100,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 		if (hasMethodOverrides() && getFactoryMethodName() != null) {
 			throw new BeanDefinitionValidationException(
 					"Cannot combine static factory method with method overrides: " +
-					"the static factory method must create the instance");
+							"the static factory method must create the instance");
 		}
 
 		if (hasBeanClass()) {
@@ -1125,14 +1137,13 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 		if (count == 0) {
 			throw new BeanDefinitionValidationException(
 					"Invalid method override: no method with name '" + mo.getMethodName() +
-					"' on class [" + getBeanClassName() + "]");
+							"' on class [" + getBeanClassName() + "]");
 		}
 		else if (count == 1) {
 			// Mark override as not overloaded, to avoid the overhead of arg type checking.
 			mo.setOverloaded(false);
 		}
 	}
-
 
 	/**
 	 * Public declaration of Object's {@code clone()} method.

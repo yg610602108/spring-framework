@@ -16,6 +16,17 @@
 
 package org.springframework.beans.factory.config;
 
+import kotlin.reflect.KProperty;
+import kotlin.reflect.jvm.ReflectJvmMapping;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.InjectionPoint;
+import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
+import org.springframework.core.*;
+import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.lang.Nullable;
+import org.springframework.util.ObjectUtils;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
@@ -25,22 +36,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Optional;
-
-import kotlin.reflect.KProperty;
-import kotlin.reflect.jvm.ReflectJvmMapping;
-
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.InjectionPoint;
-import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
-import org.springframework.core.GenericTypeResolver;
-import org.springframework.core.KotlinDetector;
-import org.springframework.core.MethodParameter;
-import org.springframework.core.ParameterNameDiscoverer;
-import org.springframework.core.ResolvableType;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.lang.Nullable;
-import org.springframework.util.ObjectUtils;
 
 /**
  * Descriptor for a specific dependency that is about to be injected.
@@ -81,7 +76,6 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 	@Nullable
 	private transient volatile TypeDescriptor typeDescriptor;
 
-
 	/**
 	 * Create a new descriptor for a method or constructor parameter.
 	 * Considers the dependency as 'eager'.
@@ -101,7 +95,6 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 	 */
 	public DependencyDescriptor(MethodParameter methodParameter, boolean required, boolean eager) {
 		super(methodParameter);
-
 		this.declaringClass = methodParameter.getDeclaringClass();
 		if (methodParameter.getMethod() != null) {
 			this.methodName = methodParameter.getMethod().getName();
@@ -132,7 +125,6 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 	 */
 	public DependencyDescriptor(Field field, boolean required, boolean eager) {
 		super(field);
-
 		this.declaringClass = field.getDeclaringClass();
 		this.fieldName = field.getName();
 		this.required = required;
@@ -145,7 +137,6 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 	 */
 	public DependencyDescriptor(DependencyDescriptor original) {
 		super(original);
-
 		this.declaringClass = original.declaringClass;
 		this.methodName = original.methodName;
 		this.parameterTypes = original.parameterTypes;
@@ -156,7 +147,6 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 		this.eager = original.eager;
 		this.nestingLevel = original.nestingLevel;
 	}
-
 
 	/**
 	 * Return whether this dependency is required.
@@ -259,6 +249,8 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 	}
 
 	/**
+	 * 将指定的 BeanName 解析为给定工厂中的 Bean 实例，作为对此依赖项的匹配算法的候选结果
+	 *
 	 * Resolve the specified bean name, as a candidate result of the matching
 	 * algorithm for this dependency, to a bean instance from the given factory.
 	 * <p>The default implementation calls {@link BeanFactory#getBean(String)}.
@@ -271,12 +263,11 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 	 * @since 4.3.2
 	 * @see BeanFactory#getBean(String)
 	 */
-	public Object resolveCandidate(String beanName, Class<?> requiredType, BeanFactory beanFactory)
-			throws BeansException {
-
+	public Object resolveCandidate(String beanName,
+								   Class<?> requiredType,
+								   BeanFactory beanFactory) throws BeansException {
 		return beanFactory.getBean(beanName);
 	}
-
 
 	/**
 	 * Increase this descriptor's nesting level.
@@ -381,6 +372,8 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 	}
 
 	/**
+	 * 确定包装的参数/字段的声明的（非通用）类型
+	 *
 	 * Determine the declared (non-generic) type of the wrapped parameter/field.
 	 * @return the declared type (never {@code null})
 	 */
@@ -414,7 +407,6 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 		}
 	}
 
-
 	@Override
 	public boolean equals(Object other) {
 		if (this == other) {
@@ -432,7 +424,6 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 	public int hashCode() {
 		return 31 * super.hashCode() + ObjectUtils.nullSafeHashCode(this.containingClass);
 	}
-
 
 	//---------------------------------------------------------------------
 	// Serialization support
@@ -466,7 +457,6 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 		}
 	}
 
-
 	/**
 	 * Inner class to avoid a hard dependency on Kotlin at runtime.
 	 */
@@ -479,6 +469,7 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 			KProperty<?> property = ReflectJvmMapping.getKotlinProperty(field);
 			return (property != null && property.getReturnType().isMarkedNullable());
 		}
+
 	}
 
 }

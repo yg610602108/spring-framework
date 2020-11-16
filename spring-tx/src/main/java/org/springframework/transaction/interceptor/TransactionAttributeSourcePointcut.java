@@ -16,15 +16,15 @@
 
 package org.springframework.transaction.interceptor;
 
-import java.io.Serializable;
-import java.lang.reflect.Method;
-
 import org.springframework.aop.ClassFilter;
 import org.springframework.aop.support.StaticMethodMatcherPointcut;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.ObjectUtils;
+
+import java.io.Serializable;
+import java.lang.reflect.Method;
 
 /**
  * Inner class that implements a Pointcut that matches if the underlying
@@ -40,10 +40,14 @@ abstract class TransactionAttributeSourcePointcut extends StaticMethodMatcherPoi
 		setClassFilter(new TransactionAttributeSourceClassFilter());
 	}
 
-
 	@Override
 	public boolean matches(Method method, Class<?> targetClass) {
+		// 获取 AnnotationTransactionAttributeSource
 		TransactionAttributeSource tas = getTransactionAttributeSource();
+		/**
+		 * 调用的是父类 AbstractFallbackTransactionAttributeSource 的方法
+		 * @see AbstractFallbackTransactionAttributeSource#getTransactionAttribute(java.lang.reflect.Method, java.lang.Class)
+		 **/
 		return (tas == null || tas.getTransactionAttribute(method, targetClass) != null);
 	}
 
@@ -69,14 +73,12 @@ abstract class TransactionAttributeSourcePointcut extends StaticMethodMatcherPoi
 		return getClass().getName() + ": " + getTransactionAttributeSource();
 	}
 
-
 	/**
 	 * Obtain the underlying TransactionAttributeSource (may be {@code null}).
 	 * To be implemented by subclasses.
 	 */
 	@Nullable
 	protected abstract TransactionAttributeSource getTransactionAttributeSource();
-
 
 	/**
 	 * {@link ClassFilter} that delegates to {@link TransactionAttributeSource#isCandidateClass}
@@ -91,9 +93,11 @@ abstract class TransactionAttributeSourcePointcut extends StaticMethodMatcherPoi
 					PersistenceExceptionTranslator.class.isAssignableFrom(clazz)) {
 				return false;
 			}
+			// 获取 AnnotationTransactionAttributeSource
 			TransactionAttributeSource tas = getTransactionAttributeSource();
 			return (tas == null || tas.isCandidateClass(clazz));
 		}
+
 	}
 
 }

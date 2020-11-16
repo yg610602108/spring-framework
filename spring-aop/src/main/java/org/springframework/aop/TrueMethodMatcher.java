@@ -29,13 +29,10 @@ final class TrueMethodMatcher implements MethodMatcher, Serializable {
 
 	public static final TrueMethodMatcher INSTANCE = new TrueMethodMatcher();
 
-
 	/**
 	 * Enforce Singleton pattern.
 	 */
-	private TrueMethodMatcher() {
-	}
-
+	private TrueMethodMatcher() { }
 
 	@Override
 	public boolean isRuntime() {
@@ -52,7 +49,6 @@ final class TrueMethodMatcher implements MethodMatcher, Serializable {
 		// Should never be invoked as isRuntime returns false.
 		throw new UnsupportedOperationException();
 	}
-
 
 	@Override
 	public String toString() {

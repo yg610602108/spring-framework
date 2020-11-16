@@ -400,6 +400,8 @@ public interface MergedAnnotations extends Iterable<MergedAnnotation<Annotation>
 	enum SearchStrategy {
 
 		/**
+		 * 仅查找直接声明的注解，而不考虑{@link Inherited @Inherited}注解，也无需搜索超类或已实现的接口
+		 *
 		 * Find only directly declared annotations, without considering
 		 * {@link Inherited @Inherited} annotations and without searching
 		 * superclasses or implemented interfaces.
@@ -407,6 +409,10 @@ public interface MergedAnnotations extends Iterable<MergedAnnotation<Annotation>
 		DIRECT,
 
 		/**
+		 * 查找所有直接声明的注解以及任何{@link Inherited @Inherited}超类注解
+		 * 此策略仅在与类的类型一起使用时才真正有用，因为对于所有其他 AnnotatedElement 注解元素，{@link Inherited @Inherited}注解将被忽略
+		 * 此策略不搜索已实现的接口
+		 *
 		 * Find all directly declared annotations as well as any
 		 * {@link Inherited @Inherited} superclass annotations. This strategy
 		 * is only really useful when used with {@link Class} types since the
@@ -417,6 +423,10 @@ public interface MergedAnnotations extends Iterable<MergedAnnotation<Annotation>
 		INHERITED_ANNOTATIONS,
 
 		/**
+		 * 查找所有直接声明的注解和超类注解
+		 * 此策略与{@link #INHERITED_ANNOTATIONS}相似，不同之处在于注解不需要使用{@link Inherited @Inherited}进行元注释
+		 * 此策略不搜索已实现的接口
+		 *
 		 * Find all directly declared and superclass annotations. This strategy
 		 * is similar to {@link #INHERITED_ANNOTATIONS} except the annotations
 		 * do not need to be meta-annotated with {@link Inherited @Inherited}.
@@ -425,6 +435,9 @@ public interface MergedAnnotations extends Iterable<MergedAnnotation<Annotation>
 		SUPERCLASS,
 
 		/**
+		 * 对所有相关元素执行完整搜索，包括任何超类或已实现接口上的元素
+		 * 超类注解不需要使用{@link Inherited @Inherited}进行元注释
+		 *
 		 * Perform a full search of all related elements, including those on any
 		 * superclasses or implemented interfaces. Superclass annotations do
 		 * not need to be meta-annotated with {@link Inherited @Inherited}.

@@ -103,6 +103,8 @@ public interface Advised extends TargetClassAware {
 	void setPreFiltered(boolean preFiltered);
 
 	/**
+	 * 返回此代理配置是否已预先过滤，以便仅包含适用的增强器程序（与该代理的目标类匹配）
+	 *
 	 * Return whether this proxy configuration is pre-filtered so that it only
 	 * contains applicable advisors (matching this proxy's target class).
 	 */

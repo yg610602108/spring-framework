@@ -16,15 +16,14 @@
 
 package org.springframework.aop.interceptor;
 
-import java.io.Serializable;
-
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-
 import org.springframework.aop.Advisor;
 import org.springframework.aop.support.DefaultPointcutAdvisor;
 import org.springframework.core.NamedThreadLocal;
 import org.springframework.core.PriorityOrdered;
+
+import java.io.Serializable;
 
 /**
  * Interceptor that exposes the current {@link org.aopalliance.intercept.MethodInvocation}
@@ -53,7 +52,7 @@ public final class ExposeInvocationInterceptor implements MethodInterceptor, Pri
 	public static final Advisor ADVISOR = new DefaultPointcutAdvisor(INSTANCE) {
 		@Override
 		public String toString() {
-			return ExposeInvocationInterceptor.class.getName() +".ADVISOR";
+			return ExposeInvocationInterceptor.class.getName() + ".ADVISOR";
 		}
 	};
 
@@ -72,8 +71,8 @@ public final class ExposeInvocationInterceptor implements MethodInterceptor, Pri
 		if (mi == null) {
 			throw new IllegalStateException(
 					"No MethodInvocation found: Check that an AOP invocation is in progress, and that the " +
-					"ExposeInvocationInterceptor is upfront in the interceptor chain. Specifically, note that " +
-					"advices with order HIGHEST_PRECEDENCE will execute before ExposeInvocationInterceptor!");
+							"ExposeInvocationInterceptor is upfront in the interceptor chain. Specifically, note that " +
+							"advices with order HIGHEST_PRECEDENCE will execute before ExposeInvocationInterceptor!");
 		}
 		return mi;
 	}
@@ -90,6 +89,7 @@ public final class ExposeInvocationInterceptor implements MethodInterceptor, Pri
 		MethodInvocation oldInvocation = invocation.get();
 		invocation.set(mi);
 		try {
+			// 返回
 			return mi.proceed();
 		}
 		finally {

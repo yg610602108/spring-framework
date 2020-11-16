@@ -19,6 +19,10 @@ package org.springframework.context;
 import java.util.EventListener;
 
 /**
+ * 由应用程序事件侦听器实现的接口
+ *
+ * 基于 Observer 观察者设计模式的标准{@link java.util.EventListener}接口
+ *
  * Interface to be implemented by application event listeners.
  *
  * <p>Based on the standard {@code java.util.EventListener} interface

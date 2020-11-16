@@ -16,12 +16,12 @@
 
 package org.springframework.beans.factory.support;
 
+import org.springframework.lang.Nullable;
+
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
-
-import org.springframework.lang.Nullable;
 
 /**
  * Set of method overrides, determining which, if any, methods on a
@@ -41,12 +41,10 @@ public class MethodOverrides {
 
 	private volatile boolean modified = false;
 
-
 	/**
 	 * Create new MethodOverrides.
 	 */
-	public MethodOverrides() {
-	}
+	public MethodOverrides() { }
 
 	/**
 	 * Deep copy constructor.
@@ -54,7 +52,6 @@ public class MethodOverrides {
 	public MethodOverrides(MethodOverrides other) {
 		addOverrides(other);
 	}
-
 
 	/**
 	 * Copy all given method overrides into this object.
@@ -111,7 +108,6 @@ public class MethodOverrides {
 			return match;
 		}
 	}
-
 
 	@Override
 	public boolean equals(Object other) {

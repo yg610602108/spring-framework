@@ -20,6 +20,21 @@ import org.springframework.beans.BeansException;
 import org.springframework.lang.Nullable;
 
 /**
+ * 工厂钩子允许自定义修改新的 Bean 实例，例如检查标记界面或使用代理包装它们
+ * ApplicationContexts 可以在它们的 bean定义 中自动检测 BeanPostProcessor Bean，并将它们应用于随后创建的任何 Bean
+ * 普通 BeanFactory 允许对后处理器进行程序化注册，适用于通过该工厂创建的所有 Bean
+ * 通常，通过标记器接口等填充 Bean 的后处理器将实现{@link #postProcessBeforeInitialization}，
+ * 而使用代理包装 Bean 的后处理器通常将实现{@link #postProcessAfterInitialization}
+ *
+ * BeanPostProcessor 后置处理器在 Bean 初始化之前执行
+ *
+ * 通过实现此接口，可插手 Bean 实例化的过程
+ * Spring 会将此接口的实现类加入到 List<BeanPostProcessor> 集合中
+ *
+ * 最重要的类【动态注册类】
+ * ImportBeanDefinitionRegistrar
+ * ImportSelector
+ *
  * Factory hook that allows for custom modification of new bean instances,
  * e.g. checking for marker interfaces or wrapping them with proxies.
  *
@@ -43,6 +58,11 @@ import org.springframework.lang.Nullable;
 public interface BeanPostProcessor {
 
 	/**
+	 * 在任何 Bean 初始化回调（如 InitializingBean 的{@code afterPropertiesSet}或自定义的 init-method ）之前
+	 * 将此 BeanPostProcessor 应用于给定的新 Bean 实例
+	 * 该 Bean 将已经用属性值填充
+	 * 返回的 Bean 实例可能是原始实例的包装
+	 *
 	 * Apply this BeanPostProcessor to the given new bean instance <i>before</i> any bean
 	 * initialization callbacks (like InitializingBean's {@code afterPropertiesSet}
 	 * or a custom init-method). The bean will already be populated with property values.
@@ -61,6 +81,11 @@ public interface BeanPostProcessor {
 	}
 
 	/**
+	 * 在任何 Bean 初始化回调（例如 InitializingBean 的{@code afterPropertiesSet}或自定义的 init-method ）之后
+	 * 将此 BeanPostProcessor 应用于给定的新 Bean 实例
+	 * 该 Bean 将已经用属性值填充
+	 * 返回的 Bean 实例可能是原始实例的包装
+	 *
 	 * Apply this BeanPostProcessor to the given new bean instance <i>after</i> any bean
 	 * initialization callbacks (like InitializingBean's {@code afterPropertiesSet}
 	 * or a custom init-method). The bean will already be populated with property values.

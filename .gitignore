@@ -38,3 +38,8 @@ out
 test-output
 atlassian-ide-plugin.xml
 .gradletasknamecache
+/.gradle/
+/build/
+/out/
+/*/out/
+/*/build/

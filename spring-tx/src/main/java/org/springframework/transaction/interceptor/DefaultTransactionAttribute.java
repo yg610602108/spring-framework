@@ -37,7 +37,6 @@ public class DefaultTransactionAttribute extends DefaultTransactionDefinition im
 	@Nullable
 	private String descriptor;
 
-
 	/**
 	 * Create a new DefaultTransactionAttribute, with default settings.
 	 * Can be modified through bean property setters.

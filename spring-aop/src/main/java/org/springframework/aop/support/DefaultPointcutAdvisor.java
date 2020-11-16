@@ -16,12 +16,11 @@
 
 package org.springframework.aop.support;
 
-import java.io.Serializable;
-
 import org.aopalliance.aop.Advice;
-
 import org.springframework.aop.Pointcut;
 import org.springframework.lang.Nullable;
+
+import java.io.Serializable;
 
 /**
  * Convenient Pointcut-driven Advisor implementation.
@@ -40,14 +39,12 @@ public class DefaultPointcutAdvisor extends AbstractGenericPointcutAdvisor imple
 
 	private Pointcut pointcut = Pointcut.TRUE;
 
-
 	/**
 	 * Create an empty DefaultPointcutAdvisor.
 	 * <p>Advice must be set before use using setter methods.
 	 * Pointcut will normally be set also, but defaults to {@code Pointcut.TRUE}.
 	 */
-	public DefaultPointcutAdvisor() {
-	}
+	public DefaultPointcutAdvisor() { }
 
 	/**
 	 * Create a DefaultPointcutAdvisor that matches all methods.
@@ -68,7 +65,6 @@ public class DefaultPointcutAdvisor extends AbstractGenericPointcutAdvisor imple
 		setAdvice(advice);
 	}
 
-
 	/**
 	 * Specify the pointcut targeting the advice.
 	 * <p>Default is {@code Pointcut.TRUE}.
@@ -82,7 +78,6 @@ public class DefaultPointcutAdvisor extends AbstractGenericPointcutAdvisor imple
 	public Pointcut getPointcut() {
 		return this.pointcut;
 	}
-
 
 	@Override
 	public String toString() {

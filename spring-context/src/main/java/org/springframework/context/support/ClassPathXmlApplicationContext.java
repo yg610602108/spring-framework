@@ -54,7 +54,6 @@ public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContex
 	@Nullable
 	private Resource[] configResources;
 
-
 	/**
 	 * Create a new ClassPathXmlApplicationContext for bean-style configuration.
 	 * @see #setConfigLocation

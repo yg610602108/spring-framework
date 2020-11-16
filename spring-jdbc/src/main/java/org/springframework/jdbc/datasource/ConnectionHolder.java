@@ -16,13 +16,13 @@
 
 package org.springframework.jdbc.datasource;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Savepoint;
-
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.ResourceHolderSupport;
 import org.springframework.util.Assert;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Savepoint;
 
 /**
  * Resource holder wrapping a JDBC {@link Connection}.
@@ -112,6 +112,8 @@ public class ConnectionHolder extends ResourceHolderSupport {
 	}
 
 	/**
+	 * 设置此持有者是否代表一个活动的，由JDBC管理的事务
+	 *
 	 * Set whether this holder represents an active, JDBC-managed transaction.
 	 * @see DataSourceTransactionManager
 	 */

@@ -93,7 +93,9 @@ public class InjectionMetadata {
 		Set<InjectedElement> checkedElements = new LinkedHashSet<>(this.injectedElements.size());
 		for (InjectedElement element : this.injectedElements) {
 			Member member = element.getMember();
+			// 不是外部管理的配置成员
 			if (!beanDefinition.isExternallyManagedConfigMember(member)) {
+				// 注册外部管理的配置成员
 				beanDefinition.registerExternallyManagedConfigMember(member);
 				checkedElements.add(element);
 				if (logger.isTraceEnabled()) {
@@ -104,8 +106,10 @@ public class InjectionMetadata {
 		this.checkedElements = checkedElements;
 	}
 
-	public void inject(Object target, @Nullable String beanName, @Nullable PropertyValues pvs) throws Throwable {
-		Collection<InjectedElement> checkedElements = this.checkedElements;
+	public void inject(Object target,
+					   @Nullable String beanName,
+					   @Nullable PropertyValues pvs) throws Throwable {// 需要注入的元素集合
+		Collection<InjectedElement> checkedElements = this.checkedElements;// 需要遍历的元素集合
 		Collection<InjectedElement> elementsToIterate =
 				(checkedElements != null ? checkedElements : this.injectedElements);
 		if (!elementsToIterate.isEmpty()) {
@@ -113,6 +117,7 @@ public class InjectionMetadata {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Processing injected element of bean '" + beanName + "': " + element);
 				}
+				// 注入依赖项
 				element.inject(target, beanName, pvs);
 			}
 		}

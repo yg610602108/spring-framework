@@ -17,11 +17,7 @@
 package org.springframework.transaction.support;
 
 import org.springframework.lang.Nullable;
-import org.springframework.transaction.NestedTransactionNotSupportedException;
-import org.springframework.transaction.SavepointManager;
-import org.springframework.transaction.TransactionException;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.TransactionUsageException;
+import org.springframework.transaction.*;
 
 /**
  * Abstract base implementation of the
@@ -52,7 +48,6 @@ public abstract class AbstractTransactionStatus implements TransactionStatus {
 
 	@Nullable
 	private Object savepoint;
-
 
 	//---------------------------------------------------------------------
 	// Implementation of TransactionExecution
@@ -156,6 +151,8 @@ public abstract class AbstractTransactionStatus implements TransactionStatus {
 	}
 
 	/**
+	 * 释放为该事务保留的保存点
+	 *
 	 * Release the savepoint that is held for the transaction.
 	 */
 	public void releaseHeldSavepoint() throws TransactionException {

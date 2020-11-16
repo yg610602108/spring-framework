@@ -16,20 +16,19 @@
 
 package org.springframework.jdbc.datasource;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
-import javax.sql.DataSource;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 /**
  * Helper class that provides static methods for obtaining JDBC Connections from
@@ -162,6 +161,8 @@ public abstract class DataSourceUtils {
 	}
 
 	/**
+	 * 使用给定的事务语义准备给定的 Connection
+	 *
 	 * Prepare the given Connection with the given transaction semantics.
 	 * @param con the Connection to prepare
 	 * @param definition the transaction definition to apply
@@ -170,7 +171,8 @@ public abstract class DataSourceUtils {
 	 * @see #resetConnectionAfterTransaction
 	 */
 	@Nullable
-	public static Integer prepareConnectionForTransaction(Connection con, @Nullable TransactionDefinition definition)
+	public static Integer prepareConnectionForTransaction(Connection con,
+														  @Nullable TransactionDefinition definition)
 			throws SQLException {
 
 		Assert.notNull(con, "No Connection specified");
@@ -221,7 +223,8 @@ public abstract class DataSourceUtils {
 	 * @param previousIsolationLevel the isolation level to restore, if any
 	 * @see #prepareConnectionForTransaction
 	 */
-	public static void resetConnectionAfterTransaction(Connection con, @Nullable Integer previousIsolationLevel) {
+	public static void resetConnectionAfterTransaction(Connection con,
+													   @Nullable Integer previousIsolationLevel) {
 		Assert.notNull(con, "No Connection specified");
 		try {
 			// Reset transaction isolation to previous value, if changed for the transaction.
@@ -254,7 +257,8 @@ public abstract class DataSourceUtils {
 	 * (may be {@code null})
 	 * @return whether the Connection is transactional
 	 */
-	public static boolean isConnectionTransactional(Connection con, @Nullable DataSource dataSource) {
+	public static boolean isConnectionTransactional(Connection con,
+													@Nullable DataSource dataSource) {
 		if (dataSource == null) {
 			return false;
 		}
@@ -270,7 +274,8 @@ public abstract class DataSourceUtils {
 	 * @throws SQLException if thrown by JDBC methods
 	 * @see java.sql.Statement#setQueryTimeout
 	 */
-	public static void applyTransactionTimeout(Statement stmt, @Nullable DataSource dataSource) throws SQLException {
+	public static void applyTransactionTimeout(Statement stmt,
+											   @Nullable DataSource dataSource) throws SQLException {
 		applyTimeout(stmt, dataSource, -1);
 	}
 
@@ -283,7 +288,9 @@ public abstract class DataSourceUtils {
 	 * @throws SQLException if thrown by JDBC methods
 	 * @see java.sql.Statement#setQueryTimeout
 	 */
-	public static void applyTimeout(Statement stmt, @Nullable DataSource dataSource, int timeout) throws SQLException {
+	public static void applyTimeout(Statement stmt,
+									@Nullable DataSource dataSource,
+									int timeout) throws SQLException {
 		Assert.notNull(stmt, "No Statement specified");
 		ConnectionHolder holder = null;
 		if (dataSource != null) {
@@ -308,7 +315,8 @@ public abstract class DataSourceUtils {
 	 * (may be {@code null})
 	 * @see #getConnection
 	 */
-	public static void releaseConnection(@Nullable Connection con, @Nullable DataSource dataSource) {
+	public static void releaseConnection(@Nullable Connection con,
+										 @Nullable DataSource dataSource) {
 		try {
 			doReleaseConnection(con, dataSource);
 		}
@@ -331,7 +339,8 @@ public abstract class DataSourceUtils {
 	 * @throws SQLException if thrown by JDBC methods
 	 * @see #doGetConnection
 	 */
-	public static void doReleaseConnection(@Nullable Connection con, @Nullable DataSource dataSource) throws SQLException {
+	public static void doReleaseConnection(@Nullable Connection con,
+										   @Nullable DataSource dataSource) throws SQLException {
 		if (con == null) {
 			return;
 		}
@@ -354,7 +363,8 @@ public abstract class DataSourceUtils {
 	 * @see Connection#close()
 	 * @see SmartDataSource#shouldClose(Connection)
 	 */
-	public static void doCloseConnection(Connection con, @Nullable DataSource dataSource) throws SQLException {
+	public static void doCloseConnection(Connection con,
+										 @Nullable DataSource dataSource) throws SQLException {
 		if (!(dataSource instanceof SmartDataSource) || ((SmartDataSource) dataSource).shouldClose(con)) {
 			con.close();
 		}
@@ -431,7 +441,8 @@ public abstract class DataSourceUtils {
 
 		private boolean holderActive = true;
 
-		public ConnectionSynchronization(ConnectionHolder connectionHolder, DataSource dataSource) {
+		public ConnectionSynchronization(ConnectionHolder connectionHolder,
+										 DataSource dataSource) {
 			this.connectionHolder = connectionHolder;
 			this.dataSource = dataSource;
 			this.order = getConnectionSynchronizationOrder(dataSource);
@@ -498,6 +509,7 @@ public abstract class DataSourceUtils {
 			}
 			this.connectionHolder.reset();
 		}
+
 	}
 
 }

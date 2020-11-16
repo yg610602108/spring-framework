@@ -16,12 +16,8 @@
 
 package org.springframework.aop.framework.autoproxy.target;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.AopInfrastructureBean;
 import org.springframework.aop.framework.autoproxy.TargetSourceCreator;
@@ -34,6 +30,9 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.lang.Nullable;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Convenient superclass for
@@ -67,6 +66,7 @@ public abstract class AbstractBeanFactoryBasedTargetSourceCreator
 
 	@Override
 	public final void setBeanFactory(BeanFactory beanFactory) {
+
 		if (!(beanFactory instanceof ConfigurableBeanFactory)) {
 			throw new IllegalStateException("Cannot do auto-TargetSource creation with a BeanFactory " +
 					"that doesn't implement ConfigurableBeanFactory: " + beanFactory.getClass());
@@ -78,6 +78,7 @@ public abstract class AbstractBeanFactoryBasedTargetSourceCreator
 	 * Return the BeanFactory that this TargetSourceCreators runs in.
 	 */
 	protected final BeanFactory getBeanFactory() {
+
 		return this.beanFactory;
 	}
 
@@ -89,6 +90,7 @@ public abstract class AbstractBeanFactoryBasedTargetSourceCreator
 	@Override
 	@Nullable
 	public final TargetSource getTargetSource(Class<?> beanClass, String beanName) {
+
 		AbstractBeanFactoryBasedTargetSource targetSource =
 				createBeanFactoryBasedTargetSource(beanClass, beanName);
 		if (targetSource == null) {
@@ -124,6 +126,7 @@ public abstract class AbstractBeanFactoryBasedTargetSourceCreator
 	 * @return the internal BeanFactory to be used
 	 */
 	protected DefaultListableBeanFactory getInternalBeanFactoryForBean(String beanName) {
+
 		synchronized (this.internalBeanFactories) {
 			DefaultListableBeanFactory internalBeanFactory = this.internalBeanFactories.get(beanName);
 			if (internalBeanFactory == null) {
@@ -160,6 +163,7 @@ public abstract class AbstractBeanFactoryBasedTargetSourceCreator
 	 */
 	@Override
 	public void destroy() {
+
 		synchronized (this.internalBeanFactories) {
 			for (DefaultListableBeanFactory bf : this.internalBeanFactories.values()) {
 				bf.destroySingletons();
@@ -179,6 +183,7 @@ public abstract class AbstractBeanFactoryBasedTargetSourceCreator
 	 * @see org.springframework.beans.factory.config.BeanDefinition#isSingleton()
 	 */
 	protected boolean isPrototypeBased() {
+
 		return true;
 	}
 
@@ -194,7 +199,7 @@ public abstract class AbstractBeanFactoryBasedTargetSourceCreator
 	 * @return the AbstractPrototypeBasedTargetSource, or {@code null} if we don't match this
 	 */
 	@Nullable
-	protected abstract AbstractBeanFactoryBasedTargetSource createBeanFactoryBasedTargetSource(
-			Class<?> beanClass, String beanName);
+	protected abstract AbstractBeanFactoryBasedTargetSource createBeanFactoryBasedTargetSource(Class<?> beanClass,
+																							   String beanName);
 
 }

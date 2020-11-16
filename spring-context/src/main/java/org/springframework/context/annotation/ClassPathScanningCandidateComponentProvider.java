@@ -16,17 +16,8 @@
 
 package org.springframework.context.annotation;
 
-import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefinition;
@@ -53,13 +44,13 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.core.type.filter.TypeFilter;
 import org.springframework.lang.Nullable;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Controller;
-import org.springframework.stereotype.Indexed;
-import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.*;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.util.*;
 
 /**
  * A component provider that provides candidate components from a base package. Can
@@ -113,13 +104,11 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	@Nullable
 	private CandidateComponentsIndex componentsIndex;
 
-
 	/**
 	 * Protected constructor for flexible subclass initialization.
 	 * @since 4.3.6
 	 */
-	protected ClassPathScanningCandidateComponentProvider() {
-	}
+	protected ClassPathScanningCandidateComponentProvider() { }
 
 	/**
 	 * Create a ClassPathScanningCandidateComponentProvider with a {@link StandardEnvironment}.
@@ -204,9 +193,11 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 */
 	@SuppressWarnings("unchecked")
 	protected void registerDefaultFilters() {
+		// 添加 @Component 注解【包含 @Repository 和 @Controller 注解】
 		this.includeFilters.add(new AnnotationTypeFilter(Component.class));
 		ClassLoader cl = ClassPathScanningCandidateComponentProvider.class.getClassLoader();
 		try {
+			// 添加 @ManagedBean 注解以支持 JSR-250 规范
 			this.includeFilters.add(new AnnotationTypeFilter(
 					((Class<? extends Annotation>) ClassUtils.forName("javax.annotation.ManagedBean", cl)), false));
 			logger.trace("JSR-250 'javax.annotation.ManagedBean' found and supported for component scanning");
@@ -215,6 +206,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 			// JSR-250 1.1 API (as included in Java EE 6) not available - simply skip.
 		}
 		try {
+			// 添加 @Named 注解以支持 JSR-330 规范
 			this.includeFilters.add(new AnnotationTypeFilter(
 					((Class<? extends Annotation>) ClassUtils.forName("javax.inject.Named", cl)), false));
 			logger.trace("JSR-330 'javax.inject.Named' annotation found and supported for component scanning");
@@ -304,15 +296,23 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 
 
 	/**
+	 * 扫描类路径以查找候选组件
+	 *
 	 * Scan the class path for candidate components.
 	 * @param basePackage the package to check for annotated classes
 	 * @return a corresponding Set of autodetected bean definitions
 	 */
 	public Set<BeanDefinition> findCandidateComponents(String basePackage) {
+		/**
+		 * 在编译时期生成类的索引的技术【静态索引】
+		 *
+		 * 如果有索引 并且 能被这个实例使用
+		 **/
 		if (this.componentsIndex != null && indexSupportsIncludeFilters()) {
 			return addCandidateComponentsFromIndex(this.componentsIndex, basePackage);
 		}
 		else {
+			// 默认执行这个方法
 			return scanCandidateComponents(basePackage);
 		}
 	}
@@ -370,7 +370,8 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 		return null;
 	}
 
-	private Set<BeanDefinition> addCandidateComponentsFromIndex(CandidateComponentsIndex index, String basePackage) {
+	private Set<BeanDefinition> addCandidateComponentsFromIndex(CandidateComponentsIndex index,
+																String basePackage) {
 		Set<BeanDefinition> candidates = new LinkedHashSet<>();
 		try {
 			Set<String> types = new HashSet<>();
@@ -414,10 +415,22 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	}
 
 	private Set<BeanDefinition> scanCandidateComponents(String basePackage) {
+		// 候选者去重集合
 		Set<BeanDefinition> candidates = new LinkedHashSet<>();
 		try {
+			/**
+			 * 获取要扫描包的磁盘路径
+			 *
+			 * packageSearchPath = "classpath*:com/ambition/**\/*.class"
+			 **/
 			String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX +
 					resolveBasePackage(basePackage) + '/' + this.resourcePattern;
+			/**
+			 * Spring 中一切皆 Resource
+			 *
+			 * 获取扫描到的资源
+			 * {@see org.springframework.core.io.support.PathMatchingResourcePatternResolver#getResources(java.lang.String)}
+			 **/
 			Resource[] resources = getResourcePatternResolver().getResources(packageSearchPath);
 			boolean traceEnabled = logger.isTraceEnabled();
 			boolean debugEnabled = logger.isDebugEnabled();
@@ -425,13 +438,45 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 				if (traceEnabled) {
 					logger.trace("Scanning " + resource);
 				}
+				// 资源是否可读
 				if (resource.isReadable()) {
 					try {
+						/**
+						 * 用 ASM 技术读取的类元数据读取器
+						 *
+						 * 里面包含这个类的资源信息、注解信息和类信息
+						 **/
 						MetadataReader metadataReader = getMetadataReaderFactory().getMetadataReader(resource);
+						/**
+						 * 校验是否符合过滤器规则，不匹配任何排除过滤器并且至少匹配一个包含过滤器
+						 * 可以理解为筛选加了 @Component 注解的 class 文件
+						 *
+						 * 这是一个扩展点
+						 *
+						 * MyBatis 这里会判断并通过校验
+						 **/
 						if (isCandidateComponent(metadataReader)) {
+							/**
+							 * 转换为 ScannedGenericBeanDefinition
+							 *
+							 * GenericBeanDefinition 有两个子类
+							 * 一个是 AnnotatedGenericBeanDefinition
+							 * 一个是 ScannedGenericBeanDefinition
+							 *
+							 * 通过扫描封装的是 ScannedGenericBeanDefinition
+							 * 通过注解封装的是 AnnotatedGenericBeanDefinition
+							 **/
 							ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
 							sbd.setResource(resource);
 							sbd.setSource(resource);
+
+							/**
+							 * 确定给定的 BeanDefinition 是否符合候选条件
+							 *
+							 * 这也是一个扩展点
+							 *
+							 * MyBatis 会判断是否是一个接口并且是独立的类
+							 **/
 							if (isCandidateComponent(sbd)) {
 								if (debugEnabled) {
 									logger.debug("Identified candidate component class: " + resource);
@@ -482,22 +527,32 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	}
 
 	/**
+	 * 确定给定的类是否不匹配任何排除过滤器并且是否匹配至少一个包含过滤器
+	 *
 	 * Determine whether the given class does not match any exclude filter
 	 * and does match at least one include filter.
 	 * @param metadataReader the ASM ClassReader for the class
 	 * @return whether the class qualifies as a candidate component
 	 */
 	protected boolean isCandidateComponent(MetadataReader metadataReader) throws IOException {
+		// 遍历排除过滤器
 		for (TypeFilter tf : this.excludeFilters) {
 			if (tf.match(metadataReader, getMetadataReaderFactory())) {
 				return false;
 			}
 		}
+		/**
+		 * 遍历包含过滤器
+		 *
+		 * 如果使用默认的规则，则添加默认的包含过滤器
+		 * {@link ClassPathScanningCandidateComponentProvider#registerDefaultFilters()}
+		 **/
 		for (TypeFilter tf : this.includeFilters) {
 			if (tf.match(metadataReader, getMetadataReaderFactory())) {
 				return isConditionMatch(metadataReader);
 			}
 		}
+
 		return false;
 	}
 
@@ -516,6 +571,8 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	}
 
 	/**
+	 * 确定给定的 BeanDefinition 是否符合候选条件
+	 *
 	 * Determine whether the given bean definition qualifies as candidate.
 	 * <p>The default implementation checks whether the class is not an interface
 	 * and not dependent on an enclosing class.
@@ -524,7 +581,13 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * @return whether the bean definition qualifies as a candidate component
 	 */
 	protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
+		// 获取注解信息
 		AnnotationMetadata metadata = beanDefinition.getMetadata();
+		/**
+		 * 是独立的类 并且 （是具体的类 或者 （是抽象类 并且 有被 @Lookup 注解标注的方法））
+		 *
+		 * MyBatis 利用了这个扩展点？
+		 **/
 		return (metadata.isIndependent() && (metadata.isConcrete() ||
 				(metadata.isAbstract() && metadata.hasAnnotatedMethods(Lookup.class.getName()))));
 	}

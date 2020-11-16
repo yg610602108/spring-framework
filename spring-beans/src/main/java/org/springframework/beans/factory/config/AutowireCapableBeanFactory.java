@@ -16,14 +16,14 @@
 
 package org.springframework.beans.factory.config;
 
-import java.util.Set;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.TypeConverter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
 import org.springframework.lang.Nullable;
+
+import java.util.Set;
 
 /**
  * Extension of the {@link org.springframework.beans.factory.BeanFactory}
@@ -62,6 +62,9 @@ import org.springframework.lang.Nullable;
 public interface AutowireCapableBeanFactory extends BeanFactory {
 
 	/**
+	 * 指示没有外部定义的自动装配的常数
+	 * 请注意，仍将应用 BeanFactoryAware 等和注解驱动的注入
+	 *
 	 * Constant that indicates no externally defined autowiring. Note that
 	 * BeanFactoryAware etc and annotation-driven injection will still be applied.
 	 * @see #createBean
@@ -71,6 +74,8 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	int AUTOWIRE_NO = 0;
 
 	/**
+	 * 通过名称指示自动装配 Bean 属性的常数（适用于所有 Bean 属性设置器）
+	 *
 	 * Constant that indicates autowiring bean properties by name
 	 * (applying to all bean property setters).
 	 * @see #createBean
@@ -80,6 +85,8 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	int AUTOWIRE_BY_NAME = 1;
 
 	/**
+	 * 指示按类型自动装配 Bean 属性的常量（适用于所有 Bean 属性设置器）
+	 *
 	 * Constant that indicates autowiring bean properties by type
 	 * (applying to all bean property setters).
 	 * @see #createBean
@@ -89,6 +96,8 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	int AUTOWIRE_BY_TYPE = 2;
 
 	/**
+	 * 指示自动装配可以满足的最贪婪的构造函数的常数（涉及解析适当的构造函数）
+	 *
 	 * Constant that indicates autowiring the greediest constructor that
 	 * can be satisfied (involves resolving the appropriate constructor).
 	 * @see #createBean
@@ -97,6 +106,8 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	int AUTOWIRE_CONSTRUCTOR = 3;
 
 	/**
+	 * 指示通过自我检查 Bean 类确定适当的自动装配策略的常数
+	 *
 	 * Constant that indicates determining an appropriate autowire strategy
 	 * through introspection of the bean class.
 	 * @see #createBean
@@ -118,7 +129,6 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * @see #applyBeanPostProcessorsAfterInitialization(Object, String)
 	 */
 	String ORIGINAL_INSTANCE_SUFFIX = ".ORIGINAL";
-
 
 	//-------------------------------------------------------------------------
 	// Typical methods for creating and populating external bean instances
@@ -168,7 +178,6 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * @see #initializeBean
 	 */
 	Object configureBean(Object existingBean, String beanName) throws BeansException;
-
 
 	//-------------------------------------------------------------------------
 	// Specialized methods for fine-grained control over the bean lifecycle
@@ -239,8 +248,9 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * @see #AUTOWIRE_BY_TYPE
 	 * @see #AUTOWIRE_NO
 	 */
-	void autowireBeanProperties(Object existingBean, int autowireMode, boolean dependencyCheck)
-			throws BeansException;
+	void autowireBeanProperties(Object existingBean,
+								int autowireMode,
+								boolean dependencyCheck) throws BeansException;
 
 	/**
 	 * Apply the property values of the bean definition with the given name to
@@ -299,8 +309,8 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * @see BeanPostProcessor#postProcessBeforeInitialization
 	 * @see #ORIGINAL_INSTANCE_SUFFIX
 	 */
-	Object applyBeanPostProcessorsBeforeInitialization(Object existingBean, String beanName)
-			throws BeansException;
+	Object applyBeanPostProcessorsBeforeInitialization(Object existingBean,
+													   String beanName) throws BeansException;
 
 	/**
 	 * Apply {@link BeanPostProcessor BeanPostProcessors} to the given existing bean
@@ -316,8 +326,8 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * @see BeanPostProcessor#postProcessAfterInitialization
 	 * @see #ORIGINAL_INSTANCE_SUFFIX
 	 */
-	Object applyBeanPostProcessorsAfterInitialization(Object existingBean, String beanName)
-			throws BeansException;
+	Object applyBeanPostProcessorsAfterInitialization(Object existingBean,
+													  String beanName) throws BeansException;
 
 	/**
 	 * Destroy the given bean instance (typically coming from {@link #createBean}),
@@ -377,7 +387,8 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * @see #resolveDependency(DependencyDescriptor, String, Set, TypeConverter)
 	 */
 	@Nullable
-	Object resolveDependency(DependencyDescriptor descriptor, @Nullable String requestingBeanName) throws BeansException;
+	Object resolveDependency(DependencyDescriptor descriptor,
+							 @Nullable String requestingBeanName) throws BeansException;
 
 	/**
 	 * Resolve the specified dependency against the beans defined in this factory.
@@ -394,7 +405,9 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * @see DependencyDescriptor
 	 */
 	@Nullable
-	Object resolveDependency(DependencyDescriptor descriptor, @Nullable String requestingBeanName,
-			@Nullable Set<String> autowiredBeanNames, @Nullable TypeConverter typeConverter) throws BeansException;
+	Object resolveDependency(DependencyDescriptor descriptor,
+							 @Nullable String requestingBeanName,
+							 @Nullable Set<String> autowiredBeanNames,
+							 @Nullable TypeConverter typeConverter) throws BeansException;
 
 }

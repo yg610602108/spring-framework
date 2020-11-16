@@ -16,16 +16,9 @@
 
 package org.springframework.transaction.interceptor;
 
-import java.lang.reflect.Method;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentMap;
-
 import io.vavr.control.Try;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
@@ -34,19 +27,19 @@ import org.springframework.core.NamedThreadLocal;
 import org.springframework.core.ReactiveAdapter;
 import org.springframework.core.ReactiveAdapterRegistry;
 import org.springframework.lang.Nullable;
-import org.springframework.transaction.NoTransactionException;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.ReactiveTransaction;
-import org.springframework.transaction.ReactiveTransactionManager;
-import org.springframework.transaction.TransactionManager;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.TransactionSystemException;
+import org.springframework.transaction.*;
 import org.springframework.transaction.reactive.TransactionContextManager;
 import org.springframework.transaction.support.CallbackPreferringPlatformTransactionManager;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ConcurrentReferenceHashMap;
 import org.springframework.util.StringUtils;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import java.lang.reflect.Method;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Base class for transactional aspects, such as the {@link TransactionInterceptor}
@@ -86,7 +79,6 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	// NOTE: This class must not implement Serializable because it serves as base
 	// class for AspectJ aspects (which are not allowed to implement Serializable)!
 
-
 	/**
 	 * Key to use to store the default transaction manager.
 	 */
@@ -112,7 +104,6 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	 */
 	private static final ThreadLocal<TransactionInfo> transactionInfoHolder =
 			new NamedThreadLocal<>("Current aspect-driven transaction");
-
 
 	/**
 	 * Subclasses can use this to return the current TransactionInfo.
@@ -297,12 +288,12 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		if (getTransactionManager() == null && this.beanFactory == null) {
 			throw new IllegalStateException(
 					"Set the 'transactionManager' property or make sure to run within a BeanFactory " +
-					"containing a PlatformTransactionManager bean!");
+							"containing a PlatformTransactionManager bean!");
 		}
 		if (getTransactionAttributeSource() == null) {
 			throw new IllegalStateException(
 					"Either 'transactionAttributeSource' or 'transactionAttributes' is required: " +
-					"If there are no transactional methods, then don't use a transaction aspect.");
+							"If there are no transactional methods, then don't use a transaction aspect.");
 		}
 	}
 
@@ -318,9 +309,10 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	 * @throws Throwable propagated from the target invocation
 	 */
 	@Nullable
-	protected Object invokeWithinTransaction(Method method, @Nullable Class<?> targetClass,
-			final InvocationCallback invocation) throws Throwable {
-
+	protected Object invokeWithinTransaction(Method method,
+											 @Nullable Class<?> targetClass,
+											 final InvocationCallback invocation) throws Throwable {
+		// reactiveAdapterRegistry 为空
 		if (this.reactiveAdapterRegistry != null) {
 			ReactiveAdapter adapter = this.reactiveAdapterRegistry.getAdapter(method.getReturnType());
 			if (adapter != null) {
@@ -328,28 +320,59 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			}
 		}
 
-		// If the transaction attribute is null, the method is non-transactional.
+		/**
+		 * If the transaction attribute is null, the method is non-transactional.
+		 * 如果 transaction 属性为 null，则该方法为非事务处理
+		 *
+		 * 获取事务属性源【AnnotationTransactionAttributeSource】
+		 **/
 		TransactionAttributeSource tas = getTransactionAttributeSource();
+		// 获取事务属性值【RuleBasedTransactionAttribute】
 		final TransactionAttribute txAttr = (tas != null ? tas.getTransactionAttribute(method, targetClass) : null);
+		// 确定事务管理器【配置文件注入的DataSourceTransactionManager】
 		final PlatformTransactionManager tm = determineTransactionManager(txAttr);
+		/**
+		 * 获取连接点标识
+		 * 仅限于 TransactionAttribute 是 DefaultTransactionAttribute 类型
+		 * 这里是 RuleBasedTransactionAttribute
+		 * @see AbstractFallbackTransactionAttributeSource#getTransactionAttribute(java.lang.reflect.Method, java.lang.Class)
+		 **/
 		final String joinpointIdentification = methodIdentification(method, targetClass, txAttr);
-
+		// DataSourceTransactionManager 不是 CallbackPreferringPlatformTransactionManager 类型
 		if (txAttr == null || !(tm instanceof CallbackPreferringPlatformTransactionManager)) {
-			// Standard transaction demarcation with getTransaction and commit/rollback calls.
+			/**
+			 * Standard transaction demarcation with getTransaction and commit/rollback calls.
+			 *
+			 * 使用 getTransaction 和 commit / rollback 调用进行标准事务划分
+			 *
+			 * 如果需要则创建事务【DefaultTransactionStatus】
+			 **/
 			TransactionInfo txInfo = createTransactionIfNecessary(tm, txAttr, joinpointIdentification);
 
 			Object retVal;
 			try {
-				// This is an around advice: Invoke the next interceptor in the chain.
-				// This will normally result in a target object being invoked.
+				/**
+				 * This is an around advice: Invoke the next interceptor in the chain.
+				 * This will normally result in a target object being invoked.
+				 *
+				 * 这是一个环绕通知：调用链中的下一个拦截器
+				 * 这通常会导致目标对象被调用
+				 **/
 				retVal = invocation.proceedWithInvocation();
 			}
 			catch (Throwable ex) {
-				// target invocation exception
+				/**
+				 * target invocation exception
+				 *
+				 * 目标调用异常，需要则进行回滚
+				 **/
 				completeTransactionAfterThrowing(txInfo, ex);
 				throw ex;
 			}
 			finally {
+				/**
+				 * 不管是否发生异常，都要还原旧事物的 TransactionInfo
+				 **/
 				cleanupTransactionInfo(txInfo);
 			}
 
@@ -361,10 +384,12 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 				}
 			}
 
+			/**
+			 * 提交事务
+			 **/
 			commitTransactionAfterReturning(txInfo);
 			return retVal;
 		}
-
 		else {
 			final ThrowableHolder throwableHolder = new ThrowableHolder();
 
@@ -435,6 +460,8 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	}
 
 	/**
+	 * 确定要用于给定事务的特定事务管理器
+	 *
 	 * Determine the specific transaction manager to use for the given transaction.
 	 */
 	@Nullable
@@ -454,19 +481,24 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		else {
 			PlatformTransactionManager defaultTransactionManager = asPlatformTransactionManager(getTransactionManager());
 			if (defaultTransactionManager == null) {
+				// 从缓存中获取
 				defaultTransactionManager = asPlatformTransactionManager(
 						this.transactionManagerCache.get(DEFAULT_TRANSACTION_MANAGER_KEY));
 				if (defaultTransactionManager == null) {
+					// 从容器中获取
 					defaultTransactionManager = this.beanFactory.getBean(PlatformTransactionManager.class);
+					// 存入缓存
 					this.transactionManagerCache.putIfAbsent(
 							DEFAULT_TRANSACTION_MANAGER_KEY, defaultTransactionManager);
 				}
 			}
+
 			return defaultTransactionManager;
 		}
 	}
 
-	private PlatformTransactionManager determineQualifiedTransactionManager(BeanFactory beanFactory, String qualifier) {
+	private PlatformTransactionManager determineQualifiedTransactionManager(BeanFactory beanFactory,
+																			String qualifier) {
 		PlatformTransactionManager txManager = asPlatformTransactionManager(this.transactionManagerCache.get(qualifier));
 		if (txManager == null) {
 			txManager = BeanFactoryAnnotationUtils.qualifiedBeanOfType(
@@ -488,18 +520,22 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		}
 	}
 
-	private String methodIdentification(Method method, @Nullable Class<?> targetClass,
-			@Nullable TransactionAttribute txAttr) {
+	private String methodIdentification(Method method,
+										@Nullable Class<?> targetClass,
+										@Nullable TransactionAttribute txAttr) {
 
 		String methodIdentification = methodIdentification(method, targetClass);
 		if (methodIdentification == null) {
+			// 是 DefaultTransactionAttribute 则获取事务属性的方法描述符
 			if (txAttr instanceof DefaultTransactionAttribute) {
 				methodIdentification = ((DefaultTransactionAttribute) txAttr).getDescriptor();
 			}
+			// 获取不到再获取实际的方法名
 			if (methodIdentification == null) {
 				methodIdentification = ClassUtils.getQualifiedMethodName(method, targetClass);
 			}
 		}
+
 		return methodIdentification;
 	}
 
@@ -521,6 +557,8 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	}
 
 	/**
+	 * 如有必要，根据给定的 TransactionAttribute 创建一个事务
+	 *
 	 * Create a transaction if necessary based on the given TransactionAttribute.
 	 * <p>Allows callers to perform custom TransactionAttribute lookups through
 	 * the TransactionAttributeSource.
@@ -534,9 +572,14 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	 */
 	@SuppressWarnings("serial")
 	protected TransactionInfo createTransactionIfNecessary(@Nullable PlatformTransactionManager tm,
-			@Nullable TransactionAttribute txAttr, final String joinpointIdentification) {
+														   @Nullable TransactionAttribute txAttr,
+														   final String joinpointIdentification) {
 
-		// If no name specified, apply method identification as transaction name.
+		/**
+		 * If no name specified, apply method identification as transaction name.
+		 *
+		 * 如果未指定名称，则将方法标识用作事务名称
+		 **/
 		if (txAttr != null && txAttr.getName() == null) {
 			txAttr = new DelegatingTransactionAttribute(txAttr) {
 				@Override
@@ -549,6 +592,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		TransactionStatus status = null;
 		if (txAttr != null) {
 			if (tm != null) {
+				// 获取 TransactionStatus
 				status = tm.getTransaction(txAttr);
 			}
 			else {
@@ -558,10 +602,14 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 				}
 			}
 		}
+
+		// 将给定属性和状态对象封装为 TransactionInfo 对象
 		return prepareTransactionInfo(tm, txAttr, joinpointIdentification, status);
 	}
 
 	/**
+	 * 为给定的属性和状态对象准备一个 TransactionInfo 对象
+	 *
 	 * Prepare a TransactionInfo for the given attribute and status object.
 	 * @param txAttr the TransactionAttribute (may be {@code null})
 	 * @param joinpointIdentification the fully qualified method name
@@ -570,8 +618,9 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	 * @return the prepared TransactionInfo object
 	 */
 	protected TransactionInfo prepareTransactionInfo(@Nullable PlatformTransactionManager tm,
-			@Nullable TransactionAttribute txAttr, String joinpointIdentification,
-			@Nullable TransactionStatus status) {
+													 @Nullable TransactionAttribute txAttr,
+													 String joinpointIdentification,
+													 @Nullable TransactionStatus status) {
 
 		TransactionInfo txInfo = new TransactionInfo(tm, txAttr, joinpointIdentification);
 		if (txAttr != null) {
@@ -591,14 +640,23 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			}
 		}
 
-		// We always bind the TransactionInfo to the thread, even if we didn't create
-		// a new transaction here. This guarantees that the TransactionInfo stack
-		// will be managed correctly even if no transaction was created by this aspect.
+		/**
+		 * We always bind the TransactionInfo to the thread,
+		 * even if we didn't create a new transaction here.
+		 * This guarantees that the TransactionInfo stack will be managed correctly
+		 * even if no transaction was created by this aspect.
+		 *
+		 * 我们始终将 TransactionInfo 绑定到线程，即使我们没有在此处创建新的事务也是如此
+		 * 这保证即使此切面未创建任何事务，也将正确管理 TransactionInfo 堆栈
+		 **/
 		txInfo.bindToThread();
 		return txInfo;
 	}
 
 	/**
+	 * 在成功完成调用之后执行，但是在处理异常之后不执行
+	 * 如果我们不创建事务，则什么也不做
+	 *
 	 * Execute after successful completion of call, but not after an exception was handled.
 	 * Do nothing if we didn't create a transaction.
 	 * @param txInfo information about the current transaction
@@ -608,17 +666,22 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			if (logger.isTraceEnabled()) {
 				logger.trace("Completing transaction for [" + txInfo.getJoinpointIdentification() + "]");
 			}
+			// 提交 【DataSourceTransactionManager 和 DefaultTransactionStatus】
 			txInfo.getTransactionManager().commit(txInfo.getTransactionStatus());
 		}
 	}
 
 	/**
+	 * 处理异常，完成事务
+	 * 可能提交事务或回滚事务，取决于配置
+	 *
 	 * Handle a throwable, completing the transaction.
 	 * We may commit or roll back, depending on the configuration.
 	 * @param txInfo information about the current transaction
 	 * @param ex throwable encountered
 	 */
-	protected void completeTransactionAfterThrowing(@Nullable TransactionInfo txInfo, Throwable ex) {
+	protected void completeTransactionAfterThrowing(@Nullable TransactionInfo txInfo,
+													Throwable ex) {
 		if (txInfo != null && txInfo.getTransactionStatus() != null) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Completing transaction for [" + txInfo.getJoinpointIdentification() +
@@ -626,6 +689,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			}
 			if (txInfo.transactionAttribute != null && txInfo.transactionAttribute.rollbackOn(ex)) {
 				try {
+					// DataSourceTransactionManager 和 DefaultTransactionStatus
 					txInfo.getTransactionManager().rollback(txInfo.getTransactionStatus());
 				}
 				catch (TransactionSystemException ex2) {
@@ -668,7 +732,6 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		}
 	}
 
-
 	/**
 	 * Opaque object used to hold transaction information. Subclasses
 	 * must pass it back to methods on this class, but not see its internals.
@@ -690,7 +753,8 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		private TransactionInfo oldTransactionInfo;
 
 		public TransactionInfo(@Nullable PlatformTransactionManager transactionManager,
-				@Nullable TransactionAttribute transactionAttribute, String joinpointIdentification) {
+							   @Nullable TransactionAttribute transactionAttribute,
+							   String joinpointIdentification) {
 
 			this.transactionManager = transactionManager;
 			this.transactionAttribute = transactionAttribute;
@@ -740,8 +804,13 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		}
 
 		private void restoreThreadLocalStatus() {
-			// Use stack to restore old transaction TransactionInfo.
-			// Will be null if none was set.
+			/**
+			 * Use stack to restore old transaction TransactionInfo.
+			 * Will be null if none was set.
+			 *
+			 * 使用堆栈还原旧事务的 TransactionInfo
+			 * 如果未设置，则为null
+			 **/
 			transactionInfoHolder.set(this.oldTransactionInfo);
 		}
 
@@ -749,6 +818,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		public String toString() {
 			return (this.transactionAttribute != null ? this.transactionAttribute.toString() : "No transaction");
 		}
+
 	}
 
 
@@ -760,6 +830,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	protected interface InvocationCallback {
 
 		Object proceedWithInvocation() throws Throwable;
+
 	}
 
 
@@ -770,6 +841,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 
 		@Nullable
 		public Throwable throwable;
+
 	}
 
 
@@ -788,6 +860,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		public String toString() {
 			return getCause().toString();
 		}
+
 	}
 
 
@@ -800,13 +873,16 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			return (retVal instanceof Try);
 		}
 
-		public static Object evaluateTryFailure(Object retVal, TransactionAttribute txAttr, TransactionStatus status) {
+		public static Object evaluateTryFailure(Object retVal,
+												TransactionAttribute txAttr,
+												TransactionStatus status) {
 			return ((Try<?>) retVal).onFailure(ex -> {
 				if (txAttr.rollbackOn(ex)) {
 					status.setRollbackOnly();
 				}
 			});
 		}
+
 	}
 
 
@@ -822,7 +898,9 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			this.adapter = adapter;
 		}
 
-		public Object invokeWithinTransaction(Method method, @Nullable Class<?> targetClass, InvocationCallback invocation) {
+		public Object invokeWithinTransaction(Method method,
+											  @Nullable Class<?> targetClass,
+											  InvocationCallback invocation) {
 			// If the transaction attribute is null, the method is non-transactional.
 			TransactionAttributeSource tas = getTransactionAttributeSource();
 			TransactionAttribute txAttr = (tas != null ? tas.getTransactionAttribute(method, targetClass) : null);
@@ -846,7 +924,8 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 										return Mono.error(throwable);
 									}
 								}, this::commitTransactionAfterReturning, txInfo -> Mono.empty())
-										.onErrorResume(ex -> completeTransactionAfterThrowing(it, ex).then(Mono.error(ex)));
+										.onErrorResume(ex -> completeTransactionAfterThrowing(it, ex)
+												.then(Mono.error(ex)));
 							}
 							catch (Throwable ex) {
 								// target invocation exception
@@ -871,7 +950,8 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 									return Mono.error(throwable);
 								}
 							}, this::commitTransactionAfterReturning, txInfo -> Mono.empty())
-									.onErrorResume(ex -> completeTransactionAfterThrowing(it, ex).then(Mono.error(ex)));
+									.onErrorResume(ex -> completeTransactionAfterThrowing(it, ex)
+											.then(Mono.error(ex)));
 						}
 						catch (Throwable ex) {
 							// target invocation exception
@@ -910,7 +990,8 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			}
 		}
 
-		private ReactiveTransactionManager determineQualifiedTransactionManager(BeanFactory beanFactory, String qualifier) {
+		private ReactiveTransactionManager determineQualifiedTransactionManager(BeanFactory beanFactory,
+																				String qualifier) {
 			ReactiveTransactionManager txManager = asReactiveTransactionManager(transactionManagerCache.get(qualifier));
 			if (txManager == null) {
 				txManager = BeanFactoryAnnotationUtils.qualifiedBeanOfType(
@@ -933,7 +1014,8 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 
 		@SuppressWarnings("serial")
 		private Mono<ReactiveTransactionInfo> createTransactionIfNecessary(@Nullable ReactiveTransactionManager tm,
-				@Nullable TransactionAttribute txAttr, final String joinpointIdentification) {
+																		   @Nullable TransactionAttribute txAttr,
+																		   final String joinpointIdentification) {
 
 			// If no name specified, apply method identification as transaction name.
 			if (txAttr != null && txAttr.getName() == null) {
@@ -959,13 +1041,18 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 				}
 			}
 
-			return tx.map(it -> prepareTransactionInfo(tm, attrToUse, joinpointIdentification, it)).switchIfEmpty(
-					Mono.defer(() -> Mono.just(prepareTransactionInfo(tm, attrToUse, joinpointIdentification, null))));
+			return tx.map(it -> prepareTransactionInfo(tm, attrToUse, joinpointIdentification, it))
+					.switchIfEmpty(
+							Mono.defer(() -> Mono.just(
+									prepareTransactionInfo(tm, attrToUse, joinpointIdentification, null))
+							)
+					);
 		}
 
 		private ReactiveTransactionInfo prepareTransactionInfo(@Nullable ReactiveTransactionManager tm,
-				@Nullable TransactionAttribute txAttr, String joinpointIdentification,
-				@Nullable ReactiveTransaction transaction) {
+															   @Nullable TransactionAttribute txAttr,
+															   String joinpointIdentification,
+															   @Nullable ReactiveTransaction transaction) {
 
 			ReactiveTransactionInfo txInfo = new ReactiveTransactionInfo(tm, txAttr, joinpointIdentification);
 			if (txAttr != null) {
@@ -998,37 +1085,43 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			return Mono.empty();
 		}
 
-		private Mono<Void> completeTransactionAfterThrowing(@Nullable ReactiveTransactionInfo txInfo, Throwable ex) {
+		private Mono<Void> completeTransactionAfterThrowing(@Nullable ReactiveTransactionInfo txInfo,
+															Throwable ex) {
 			if (txInfo != null && txInfo.getReactiveTransaction() != null) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Completing transaction for [" + txInfo.getJoinpointIdentification() +
 							"] after exception: " + ex);
 				}
 				if (txInfo.transactionAttribute != null && txInfo.transactionAttribute.rollbackOn(ex)) {
-					return txInfo.getTransactionManager().rollback(txInfo.getReactiveTransaction()).onErrorMap(ex2 -> {
-								logger.error("Application exception overridden by rollback exception", ex);
-								if (ex2 instanceof TransactionSystemException) {
-									((TransactionSystemException) ex2).initApplicationException(ex);
-								}
-								return ex2;
-							}
-					);
+					return txInfo.getTransactionManager()
+							.rollback(txInfo.getReactiveTransaction())
+							.onErrorMap(ex2 -> {
+										logger.error("Application exception overridden by rollback exception", ex);
+										if (ex2 instanceof TransactionSystemException) {
+											((TransactionSystemException) ex2).initApplicationException(ex);
+										}
+										return ex2;
+									}
+							);
 				}
 				else {
 					// We don't roll back on this exception.
 					// Will still roll back if TransactionStatus.isRollbackOnly() is true.
-					return txInfo.getTransactionManager().commit(txInfo.getReactiveTransaction()).onErrorMap(ex2 -> {
-								logger.error("Application exception overridden by commit exception", ex);
-								if (ex2 instanceof TransactionSystemException) {
-									((TransactionSystemException) ex2).initApplicationException(ex);
-								}
-								return ex2;
-							}
-					);
+					return txInfo.getTransactionManager()
+							.commit(txInfo.getReactiveTransaction())
+							.onErrorMap(ex2 -> {
+										logger.error("Application exception overridden by commit exception", ex);
+										if (ex2 instanceof TransactionSystemException) {
+											((TransactionSystemException) ex2).initApplicationException(ex);
+										}
+										return ex2;
+									}
+							);
 				}
 			}
 			return Mono.empty();
 		}
+
 	}
 
 
@@ -1049,7 +1142,8 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		private ReactiveTransaction reactiveTransaction;
 
 		public ReactiveTransactionInfo(@Nullable ReactiveTransactionManager transactionManager,
-				@Nullable TransactionAttribute transactionAttribute, String joinpointIdentification) {
+									   @Nullable TransactionAttribute transactionAttribute,
+									   String joinpointIdentification) {
 
 			this.transactionManager = transactionManager;
 			this.transactionAttribute = transactionAttribute;
@@ -1087,6 +1181,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		public String toString() {
 			return (this.transactionAttribute != null ? this.transactionAttribute.toString() : "No transaction");
 		}
+
 	}
 
 }

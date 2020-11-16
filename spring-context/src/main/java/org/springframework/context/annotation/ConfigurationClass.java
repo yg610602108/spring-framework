@@ -55,8 +55,14 @@ final class ConfigurationClass {
 	@Nullable
 	private String beanName;
 
+	/**
+	 * 存放被谁导入进来的配置类集合
+	 **/
 	private final Set<ConfigurationClass> importedBy = new LinkedHashSet<>(1);
 
+	/**
+	 * 存放配置类中定义的 @Bean 方法
+	 **/
 	private final Set<BeanMethod> beanMethods = new LinkedHashSet<>();
 
 	private final Map<String, Class<? extends BeanDefinitionReader>> importedResources =
@@ -89,7 +95,8 @@ final class ConfigurationClass {
 	 * @param importedBy the configuration class importing this one or {@code null}
 	 * @since 3.1.1
 	 */
-	public ConfigurationClass(MetadataReader metadataReader, @Nullable ConfigurationClass importedBy) {
+	public ConfigurationClass(MetadataReader metadataReader,
+							  @Nullable ConfigurationClass importedBy) {
 		this.metadata = metadataReader.getAnnotationMetadata();
 		this.resource = metadataReader.getResource();
 		this.importedBy.add(importedBy);
@@ -193,11 +200,13 @@ final class ConfigurationClass {
 		return this.beanMethods;
 	}
 
-	public void addImportedResource(String importedResource, Class<? extends BeanDefinitionReader> readerClass) {
+	public void addImportedResource(String importedResource,
+									Class<? extends BeanDefinitionReader> readerClass) {
 		this.importedResources.put(importedResource, readerClass);
 	}
 
-	public void addImportBeanDefinitionRegistrar(ImportBeanDefinitionRegistrar registrar, AnnotationMetadata importingClassMetadata) {
+	public void addImportBeanDefinitionRegistrar(ImportBeanDefinitionRegistrar registrar,
+												 AnnotationMetadata importingClassMetadata) {
 		this.importBeanDefinitionRegistrars.put(registrar, importingClassMetadata);
 	}
 
@@ -210,7 +219,10 @@ final class ConfigurationClass {
 	}
 
 	public void validate(ProblemReporter problemReporter) {
-		// A configuration class may not be final (CGLIB limitation) unless it declares proxyBeanMethods=false
+		/**
+		 * A configuration class may not be final (CGLIB limitation) unless it declares proxyBeanMethods=false
+		 * 除非配置类声明 proxyBeanMethods = false，否则它可能不是 final 的（CGLIB限制）
+		 **/
 		Map<String, Object> attributes = this.metadata.getAnnotationAttributes(Configuration.class.getName());
 		if (attributes != null && (Boolean) attributes.get("proxyBeanMethods")) {
 			if (this.metadata.isFinal()) {

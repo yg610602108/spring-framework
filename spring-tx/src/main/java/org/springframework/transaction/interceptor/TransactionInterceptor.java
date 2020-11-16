@@ -16,19 +16,18 @@
 
 package org.springframework.transaction.interceptor;
 
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
+import org.springframework.aop.support.AopUtils;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.lang.Nullable;
+import org.springframework.transaction.PlatformTransactionManager;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Properties;
-
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
-
-import org.springframework.aop.support.AopUtils;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.lang.Nullable;
-import org.springframework.transaction.PlatformTransactionManager;
 
 /**
  * AOP Alliance MethodInterceptor for declarative transaction
@@ -59,8 +58,7 @@ public class TransactionInterceptor extends TransactionAspectSupport implements 
 	 * @see #setTransactionAttributes(java.util.Properties)
 	 * @see #setTransactionAttributeSource(TransactionAttributeSource)
 	 */
-	public TransactionInterceptor() {
-	}
+	public TransactionInterceptor() { }
 
 	/**
 	 * Create a new TransactionInterceptor.
@@ -86,19 +84,35 @@ public class TransactionInterceptor extends TransactionAspectSupport implements 
 		setTransactionAttributeSource(tas);
 	}
 
-
 	@Override
 	@Nullable
 	public Object invoke(MethodInvocation invocation) throws Throwable {
-		// Work out the target class: may be {@code null}.
-		// The TransactionAttributeSource should be passed the target class
-		// as well as the method, which may be from an interface.
-		Class<?> targetClass = (invocation.getThis() != null ? AopUtils.getTargetClass(invocation.getThis()) : null);
+		/**
+		 * Work out the target class: may be {@code null}.
+		 * The TransactionAttributeSource should be passed the target class as well as the method,
+		 * which may be from an interface.
+		 *
+		 * 处理目标方法，可能为空
+		 * 应该将 TransactionAttributeSource 和目标类以及方法（可能来自接口）传递给它
+		 *
+		 * class com.ambition.service.PayServiceImpl
+		 **/
+		Class<?> targetClass =
+				(invocation.getThis() != null ? AopUtils.getTargetClass(invocation.getThis()) : null);
 
-		// Adapt to TransactionAspectSupport's invokeWithinTransaction...
-		return invokeWithinTransaction(invocation.getMethod(), targetClass, invocation::proceed);
+		/**
+		 * Adapt to TransactionAspectSupport's invokeWithinTransaction...
+		 * 适应 TransactionAspectSupport 的 invokeWithinTransaction
+		 **/
+		return invokeWithinTransaction(
+				// 目标方法
+				invocation.getMethod(),
+				// 目标类
+				targetClass,
+				// 返回
+				invocation::proceed
+		);
 	}
-
 
 	//---------------------------------------------------------------------
 	// Serialization support

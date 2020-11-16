@@ -16,14 +16,14 @@
 
 package org.springframework.core;
 
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Collection;
 import java.util.Iterator;
-
-import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 
 /**
  * Provides methods to support various naming and other conventions used
@@ -41,10 +41,7 @@ public final class Conventions {
 	 */
 	private static final String PLURAL_SUFFIX = "List";
 
-
-	private Conventions() {
-	}
-
+	private Conventions() { }
 
 	/**
 	 * Determine the conventional variable name for the supplied {@code Object}
@@ -166,7 +163,9 @@ public final class Conventions {
 	 * @param value the return value (may be {@code null} if not available)
 	 * @return the generated variable name
 	 */
-	public static String getVariableNameForReturnType(Method method, Class<?> resolvedType, @Nullable Object value) {
+	public static String getVariableNameForReturnType(Method method,
+													  Class<?> resolvedType,
+													  @Nullable Object value) {
 		Assert.notNull(method, "Method must not be null");
 
 		if (Object.class == resolvedType) {
@@ -226,7 +225,7 @@ public final class Conventions {
 			return attributeName;
 		}
 		char[] chars = attributeName.toCharArray();
-		char[] result = new char[chars.length -1]; // not completely accurate but good guess
+		char[] result = new char[chars.length - 1]; // not completely accurate but good guess
 		int currPos = 0;
 		boolean upperCaseNext = false;
 		for (char c : chars) {
@@ -249,7 +248,8 @@ public final class Conventions {
 	 * For example the attribute name '{@code foo}' qualified by {@link Class}
 	 * '{@code com.myapp.SomeClass}' would be '{@code com.myapp.SomeClass.foo}'
 	 */
-	public static String getQualifiedAttributeName(Class<?> enclosingClass, String attributeName) {
+	public static String getQualifiedAttributeName(Class<?> enclosingClass,
+												   String attributeName) {
 		Assert.notNull(enclosingClass, "'enclosingClass' must not be null");
 		Assert.notNull(attributeName, "'attributeName' must not be null");
 		return enclosingClass.getName() + '.' + attributeName;

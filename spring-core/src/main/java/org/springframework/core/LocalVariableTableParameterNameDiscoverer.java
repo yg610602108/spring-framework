@@ -16,6 +16,12 @@
 
 package org.springframework.core;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.asm.*;
+import org.springframework.lang.Nullable;
+import org.springframework.util.ClassUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
@@ -24,19 +30,6 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.asm.ClassReader;
-import org.springframework.asm.ClassVisitor;
-import org.springframework.asm.Label;
-import org.springframework.asm.MethodVisitor;
-import org.springframework.asm.Opcodes;
-import org.springframework.asm.SpringAsmInfo;
-import org.springframework.asm.Type;
-import org.springframework.lang.Nullable;
-import org.springframework.util.ClassUtils;
 
 /**
  * Implementation of {@link ParameterNameDiscoverer} that uses the LocalVariableTable
@@ -176,6 +169,7 @@ public class LocalVariableTableParameterNameDiscoverer implements ParameterNameD
 		private static boolean isStatic(int access) {
 			return ((access & Opcodes.ACC_STATIC) > 0);
 		}
+
 	}
 
 
@@ -272,6 +266,7 @@ public class LocalVariableTableParameterNameDiscoverer implements ParameterNameD
 			// float is not a wide type
 			return (aType == Type.LONG_TYPE || aType == Type.DOUBLE_TYPE);
 		}
+
 	}
 
 }

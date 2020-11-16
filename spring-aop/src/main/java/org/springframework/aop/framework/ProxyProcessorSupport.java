@@ -16,8 +16,6 @@
 
 package org.springframework.aop.framework;
 
-import java.io.Closeable;
-
 import org.springframework.beans.factory.Aware;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.DisposableBean;
@@ -26,6 +24,8 @@ import org.springframework.core.Ordered;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
+
+import java.io.Closeable;
 
 /**
  * Base class with common functionality for proxy processors, in particular
@@ -37,7 +37,8 @@ import org.springframework.util.ObjectUtils;
  * @see org.springframework.aop.framework.autoproxy.AbstractAutoProxyCreator
  */
 @SuppressWarnings("serial")
-public class ProxyProcessorSupport extends ProxyConfig implements Ordered, BeanClassLoaderAware, AopInfrastructureBean {
+public class ProxyProcessorSupport extends ProxyConfig
+		implements Ordered, BeanClassLoaderAware, AopInfrastructureBean {
 
 	/**
 	 * This should run after all other processors, so that it can just add
@@ -49,7 +50,6 @@ public class ProxyProcessorSupport extends ProxyConfig implements Ordered, BeanC
 	private ClassLoader proxyClassLoader = ClassUtils.getDefaultClassLoader();
 
 	private boolean classLoaderConfigured = false;
-
 
 	/**
 	 * Set the ordering which will apply to this processor's implementation
@@ -92,8 +92,9 @@ public class ProxyProcessorSupport extends ProxyConfig implements Ordered, BeanC
 		}
 	}
 
-
 	/**
+	 * 检查给定 bean 类上的接口，并在适当时将它们应用于{@link ProxyFactory}
+	 *
 	 * Check the interfaces on the given bean class and apply them to the {@link ProxyFactory},
 	 * if appropriate.
 	 * <p>Calls {@link #isConfigurationCallbackInterface} and {@link #isInternalLanguageInterface}
@@ -101,12 +102,14 @@ public class ProxyProcessorSupport extends ProxyConfig implements Ordered, BeanC
 	 * @param beanClass the class of the bean
 	 * @param proxyFactory the ProxyFactory for the bean
 	 */
-	protected void evaluateProxyInterfaces(Class<?> beanClass, ProxyFactory proxyFactory) {
+	protected void evaluateProxyInterfaces(Class<?> beanClass,
+										   ProxyFactory proxyFactory) {
 		Class<?>[] targetInterfaces = ClassUtils.getAllInterfacesForClass(beanClass, getProxyClassLoader());
 		boolean hasReasonableProxyInterface = false;
 		for (Class<?> ifc : targetInterfaces) {
-			if (!isConfigurationCallbackInterface(ifc) && !isInternalLanguageInterface(ifc) &&
-					ifc.getMethods().length > 0) {
+			if (!isConfigurationCallbackInterface(ifc)
+					&& !isInternalLanguageInterface(ifc)
+					&& ifc.getMethods().length > 0) {
 				hasReasonableProxyInterface = true;
 				break;
 			}
@@ -131,8 +134,8 @@ public class ProxyProcessorSupport extends ProxyConfig implements Ordered, BeanC
 	 * @return whether the given interface is just a container callback
 	 */
 	protected boolean isConfigurationCallbackInterface(Class<?> ifc) {
-		return (InitializingBean.class == ifc || DisposableBean.class == ifc || Closeable.class == ifc ||
-				AutoCloseable.class == ifc || ObjectUtils.containsElement(ifc.getInterfaces(), Aware.class));
+		return (InitializingBean.class == ifc || DisposableBean.class == ifc || Closeable.class == ifc
+				|| AutoCloseable.class == ifc || ObjectUtils.containsElement(ifc.getInterfaces(), Aware.class));
 	}
 
 	/**
@@ -144,9 +147,10 @@ public class ProxyProcessorSupport extends ProxyConfig implements Ordered, BeanC
 	 * @return whether the given interface is an internal language interface
 	 */
 	protected boolean isInternalLanguageInterface(Class<?> ifc) {
-		return (ifc.getName().equals("groovy.lang.GroovyObject") ||
-				ifc.getName().endsWith(".cglib.proxy.Factory") ||
-				ifc.getName().endsWith(".bytebuddy.MockAccess"));
+
+		return (ifc.getName().equals("groovy.lang.GroovyObject")
+				|| ifc.getName().endsWith(".cglib.proxy.Factory")
+				|| ifc.getName().endsWith(".bytebuddy.MockAccess"));
 	}
 
 }

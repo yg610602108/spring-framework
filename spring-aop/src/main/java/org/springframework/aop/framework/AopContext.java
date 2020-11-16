@@ -49,10 +49,7 @@ public final class AopContext {
 	 */
 	private static final ThreadLocal<Object> currentProxy = new NamedThreadLocal<>("Current AOP proxy");
 
-
-	private AopContext() {
-	}
-
+	private AopContext() { }
 
 	/**
 	 * Try to return the current AOP proxy. This method is usable only if the
@@ -64,6 +61,7 @@ public final class AopContext {
 	 * AOP framework has not been configured to expose the proxy
 	 */
 	public static Object currentProxy() throws IllegalStateException {
+
 		Object proxy = currentProxy.get();
 		if (proxy == null) {
 			throw new IllegalStateException(
@@ -81,6 +79,7 @@ public final class AopContext {
 	 */
 	@Nullable
 	static Object setCurrentProxy(@Nullable Object proxy) {
+
 		Object old = currentProxy.get();
 		if (proxy != null) {
 			currentProxy.set(proxy);

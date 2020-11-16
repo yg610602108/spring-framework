@@ -34,7 +34,6 @@ public interface ConfigurationCondition extends Condition {
 	 */
 	ConfigurationPhase getConfigurationPhase();
 
-
 	/**
 	 * The various configuration phases where the condition could be evaluated.
 	 */

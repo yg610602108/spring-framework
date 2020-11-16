@@ -26,9 +26,7 @@ package org.springframework.aop.framework.adapter;
  */
 public final class GlobalAdvisorAdapterRegistry {
 
-	private GlobalAdvisorAdapterRegistry() {
-	}
-
+	private GlobalAdvisorAdapterRegistry() { }
 
 	/**
 	 * Keep track of a single instance so we can return it to classes that request it.

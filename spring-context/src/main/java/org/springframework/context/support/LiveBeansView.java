@@ -16,14 +16,6 @@
 
 package org.springframework.context.support;
 
-import java.lang.management.ManagementFactory;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
-
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -34,6 +26,14 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import java.lang.management.ManagementFactory;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * Adapter for live beans view exposure, building a snapshot of current beans
@@ -76,8 +76,10 @@ public class LiveBeansView implements LiveBeansViewMBean, ApplicationContextAwar
 					try {
 						MBeanServer server = ManagementFactory.getPlatformMBeanServer();
 						applicationName = applicationContext.getApplicationName();
-						server.registerMBean(new LiveBeansView(),
-								new ObjectName(mbeanDomain, MBEAN_APPLICATION_KEY, applicationName));
+						server.registerMBean(
+								new LiveBeansView(),
+								new ObjectName(mbeanDomain, MBEAN_APPLICATION_KEY, applicationName)
+						);
 					}
 					catch (Throwable ex) {
 						throw new ApplicationContextException("Failed to register LiveBeansView MBean", ex);
@@ -108,10 +110,8 @@ public class LiveBeansView implements LiveBeansViewMBean, ApplicationContextAwar
 		}
 	}
 
-
 	@Nullable
 	private ConfigurableApplicationContext applicationContext;
-
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) {
@@ -119,7 +119,6 @@ public class LiveBeansView implements LiveBeansViewMBean, ApplicationContextAwar
 				"ApplicationContext does not implement ConfigurableApplicationContext");
 		this.applicationContext = (ConfigurableApplicationContext) applicationContext;
 	}
-
 
 	/**
 	 * Generate a JSON snapshot of current beans and their dependencies,
@@ -162,7 +161,7 @@ public class LiveBeansView implements LiveBeansViewMBean, ApplicationContextAwar
 	 */
 	protected String generateJson(Set<ConfigurableApplicationContext> contexts) {
 		StringBuilder result = new StringBuilder("[\n");
-		for (Iterator<ConfigurableApplicationContext> it = contexts.iterator(); it.hasNext();) {
+		for (Iterator<ConfigurableApplicationContext> it = contexts.iterator(); it.hasNext(); ) {
 			ConfigurableApplicationContext context = it.next();
 			result.append("{\n\"context\": \"").append(context.getId()).append("\",\n");
 			if (context.getParent() != null) {

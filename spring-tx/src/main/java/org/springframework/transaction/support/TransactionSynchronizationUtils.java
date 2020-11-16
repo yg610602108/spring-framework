@@ -55,8 +55,9 @@ public abstract class TransactionSynchronizationUtils {
 	}
 
 	/**
-	 * Unwrap the given resource handle if necessary; otherwise return
-	 * the given handle as-is.
+	 * 如有必要，解开给定的资源句柄，否则按原样返回给定的句柄
+	 *
+	 * Unwrap the given resource handle if necessary; otherwise return the given handle as-is.
 	 * @see org.springframework.core.InfrastructureProxy#getWrappedObject()
 	 */
 	static Object unwrapResourceIfNecessary(Object resource) {
@@ -86,6 +87,8 @@ public abstract class TransactionSynchronizationUtils {
 	}
 
 	/**
+	 * 在所有当前已注册的同步上触发{@code beforeCommit}回调
+	 *
 	 * Trigger {@code beforeCommit} callbacks on all currently registered synchronizations.
 	 * @param readOnly whether the transaction is defined as read-only transaction
 	 * @throws RuntimeException if thrown by a {@code beforeCommit} callback
@@ -98,6 +101,8 @@ public abstract class TransactionSynchronizationUtils {
 	}
 
 	/**
+	 * 在所有当前已注册的同步上触发{@code beforeCompletion}回调
+	 *
 	 * Trigger {@code beforeCompletion} callbacks on all currently registered synchronizations.
 	 * @see TransactionSynchronization#beforeCompletion()
 	 */

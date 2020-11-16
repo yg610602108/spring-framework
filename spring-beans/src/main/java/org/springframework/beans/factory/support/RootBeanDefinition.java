@@ -67,43 +67,79 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 	@Nullable
 	volatile ResolvableType targetType;
 
-	/** Package-visible field for caching the determined Class of a given bean definition. */
+	/**
+	 * Package-visible field for caching the determined Class of a given bean definition.
+	 *
+	 * 包可见的字段，用于缓存给定 BeanDefinition 的确定的 Class
+	 **/
 	@Nullable
 	volatile Class<?> resolvedTargetType;
 
-	/** Package-visible field for caching the return type of a generically typed factory method. */
+	/**
+	 * Package-visible field for caching the return type of a generically typed factory method.
+	 *
+	 * 包可见的字段，用于缓存通用类型的工厂方法的返回类型
+	 **/
 	@Nullable
 	volatile ResolvableType factoryMethodReturnType;
 
-	/** Package-visible field for caching a unique factory method candidate for introspection. */
+	/**
+	 * Package-visible field for caching a unique factory method candidate for introspection.
+	 *
+	 * 程序包可见的字段，用于缓存用于自省的唯一工厂方法候选对象
+	 **/
 	@Nullable
 	volatile Method factoryMethodToIntrospect;
 
 	/** Common lock for the four constructor fields below. */
 	final Object constructorArgumentLock = new Object();
 
-	/** Package-visible field for caching the resolved constructor or factory method. */
+	/**
+	 * Package-visible field for caching the resolved constructor or factory method.
+	 *
+	 * 程序包可见的字段，用于缓存已解析的构造函数或工厂方法
+	 **/
 	@Nullable
 	Executable resolvedConstructorOrFactoryMethod;
 
-	/** Package-visible field that marks the constructor arguments as resolved. */
+	/**
+	 * Package-visible field that marks the constructor arguments as resolved.
+	 *
+	 * 包可见的字段，用于标记构造函数参数为已解决
+	 **/
 	boolean constructorArgumentsResolved = false;
 
-	/** Package-visible field for caching fully resolved constructor arguments. */
+	/**
+	 * Package-visible field for caching fully resolved constructor arguments.
+	 *
+	 * 包可见的字段，用于缓存完全解析的构造函数参数
+	 **/
 	@Nullable
 	Object[] resolvedConstructorArguments;
 
-	/** Package-visible field for caching partly prepared constructor arguments. */
+	/**
+	 * Package-visible field for caching partly prepared constructor arguments.
+	 *
+	 * 包可见的字段，用于缓存部分准备好的构造函数参数
+	 **/
 	@Nullable
 	Object[] preparedConstructorArguments;
 
 	/** Common lock for the two post-processing fields below. */
 	final Object postProcessingLock = new Object();
 
-	/** Package-visible field that indicates MergedBeanDefinitionPostProcessor having been applied. */
+	/**
+	 * Package-visible field that indicates MergedBeanDefinitionPostProcessor having been applied.
+	 *
+	 * 包可见的字段，指示已应用 MergedBeanDefinitionPostProcessor
+	 **/
 	boolean postProcessed = false;
 
-	/** Package-visible field that indicates a before-instantiation post-processor having kicked in. */
+	/**
+	 * Package-visible field that indicates a before-instantiation post-processor having kicked in.
+	 *
+	 * 程序包可见的字段，指示已启动实例化前的后处理器
+	 **/
 	@Nullable
 	volatile Boolean beforeInstantiationResolved;
 
@@ -115,7 +151,6 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 
 	@Nullable
 	private Set<String> externallyManagedDestroyMethods;
-
 
 	/**
 	 * Create a new RootBeanDefinition, to be configured through its bean
@@ -148,7 +183,8 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 	 * @since 5.0
 	 * @see #setInstanceSupplier
 	 */
-	public <T> RootBeanDefinition(@Nullable Class<T> beanClass, @Nullable Supplier<T> instanceSupplier) {
+	public <T> RootBeanDefinition(@Nullable Class<T> beanClass,
+								  @Nullable Supplier<T> instanceSupplier) {
 		super();
 		setBeanClass(beanClass);
 		setInstanceSupplier(instanceSupplier);
@@ -164,7 +200,9 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 	 * @since 5.0
 	 * @see #setInstanceSupplier
 	 */
-	public <T> RootBeanDefinition(@Nullable Class<T> beanClass, String scope, @Nullable Supplier<T> instanceSupplier) {
+	public <T> RootBeanDefinition(@Nullable Class<T> beanClass,
+								  String scope,
+								  @Nullable Supplier<T> instanceSupplier) {
 		super();
 		setBeanClass(beanClass);
 		setScope(scope);
@@ -179,7 +217,9 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 	 * @param dependencyCheck whether to perform a dependency check for objects
 	 * (not applicable to autowiring a constructor, thus ignored there)
 	 */
-	public RootBeanDefinition(@Nullable Class<?> beanClass, int autowireMode, boolean dependencyCheck) {
+	public RootBeanDefinition(@Nullable Class<?> beanClass,
+							  int autowireMode,
+							  boolean dependencyCheck) {
 		super();
 		setBeanClass(beanClass);
 		setAutowireMode(autowireMode);
@@ -195,8 +235,9 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 	 * @param cargs the constructor argument values to apply
 	 * @param pvs the property values to apply
 	 */
-	public RootBeanDefinition(@Nullable Class<?> beanClass, @Nullable ConstructorArgumentValues cargs,
-			@Nullable MutablePropertyValues pvs) {
+	public RootBeanDefinition(@Nullable Class<?> beanClass,
+							  @Nullable ConstructorArgumentValues cargs,
+							  @Nullable MutablePropertyValues pvs) {
 
 		super(cargs, pvs);
 		setBeanClass(beanClass);
@@ -220,7 +261,9 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 	 * @param cargs the constructor argument values to apply
 	 * @param pvs the property values to apply
 	 */
-	public RootBeanDefinition(String beanClassName, ConstructorArgumentValues cargs, MutablePropertyValues pvs) {
+	public RootBeanDefinition(String beanClassName,
+							  ConstructorArgumentValues cargs,
+							  MutablePropertyValues pvs) {
 		super(cargs, pvs);
 		setBeanClassName(beanClassName);
 	}
@@ -408,8 +451,8 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 
 	public boolean isExternallyManagedConfigMember(Member configMember) {
 		synchronized (this.postProcessingLock) {
-			return (this.externallyManagedConfigMembers != null &&
-					this.externallyManagedConfigMembers.contains(configMember));
+			return (this.externallyManagedConfigMembers != null
+					&& this.externallyManagedConfigMembers.contains(configMember));
 		}
 	}
 
@@ -424,8 +467,8 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 
 	public boolean isExternallyManagedInitMethod(String initMethod) {
 		synchronized (this.postProcessingLock) {
-			return (this.externallyManagedInitMethods != null &&
-					this.externallyManagedInitMethods.contains(initMethod));
+			return (this.externallyManagedInitMethods != null
+					&& this.externallyManagedInitMethods.contains(initMethod));
 		}
 	}
 
@@ -440,8 +483,8 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 
 	public boolean isExternallyManagedDestroyMethod(String destroyMethod) {
 		synchronized (this.postProcessingLock) {
-			return (this.externallyManagedDestroyMethods != null &&
-					this.externallyManagedDestroyMethods.contains(destroyMethod));
+			return (this.externallyManagedDestroyMethods != null
+					&& this.externallyManagedDestroyMethods.contains(destroyMethod));
 		}
 	}
 

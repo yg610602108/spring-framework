@@ -16,41 +16,24 @@
 
 package org.springframework.transaction.jta;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
-import java.util.List;
-import java.util.Properties;
-import javax.naming.NamingException;
-import javax.transaction.HeuristicMixedException;
-import javax.transaction.HeuristicRollbackException;
-import javax.transaction.InvalidTransactionException;
-import javax.transaction.NotSupportedException;
-import javax.transaction.RollbackException;
-import javax.transaction.Status;
-import javax.transaction.SystemException;
-import javax.transaction.Transaction;
-import javax.transaction.TransactionManager;
-import javax.transaction.TransactionSynchronizationRegistry;
-import javax.transaction.UserTransaction;
-
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.jndi.JndiTemplate;
 import org.springframework.lang.Nullable;
-import org.springframework.transaction.CannotCreateTransactionException;
-import org.springframework.transaction.HeuristicCompletionException;
-import org.springframework.transaction.IllegalTransactionStateException;
-import org.springframework.transaction.InvalidIsolationLevelException;
-import org.springframework.transaction.NestedTransactionNotSupportedException;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionSuspensionNotSupportedException;
-import org.springframework.transaction.TransactionSystemException;
-import org.springframework.transaction.UnexpectedRollbackException;
+import org.springframework.transaction.*;
 import org.springframework.transaction.support.AbstractPlatformTransactionManager;
 import org.springframework.transaction.support.DefaultTransactionStatus;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import javax.naming.NamingException;
+import javax.transaction.*;
+import javax.transaction.TransactionManager;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * {@link org.springframework.transaction.PlatformTransactionManager} implementation
@@ -136,7 +119,7 @@ public class JtaTransactionManager extends AbstractPlatformTransactionManager
 	 * @see #setAutodetectTransactionManager
 	 */
 	public static final String[] FALLBACK_TRANSACTION_MANAGER_NAMES =
-			new String[] {"java:comp/TransactionManager", "java:appserver/TransactionManager",
+			new String[]{"java:comp/TransactionManager", "java:appserver/TransactionManager",
 					"java:pm/TransactionManager", "java:/TransactionManager"};
 
 	/**
@@ -905,7 +888,7 @@ public class JtaTransactionManager extends AbstractPlatformTransactionManager
 		if (!this.allowCustomIsolationLevels && isolationLevel != TransactionDefinition.ISOLATION_DEFAULT) {
 			throw new InvalidIsolationLevelException(
 					"JtaTransactionManager does not support custom isolation levels by default - " +
-					"switch 'allowCustomIsolationLevels' to 'true'");
+							"switch 'allowCustomIsolationLevels' to 'true'");
 		}
 	}
 
@@ -953,7 +936,7 @@ public class JtaTransactionManager extends AbstractPlatformTransactionManager
 		if (getTransactionManager() == null) {
 			throw new TransactionSuspensionNotSupportedException(
 					"JtaTransactionManager needs a JTA TransactionManager for suspending a transaction: " +
-					"specify the 'transactionManager' or 'transactionManagerName' property");
+							"specify the 'transactionManager' or 'transactionManagerName' property");
 		}
 		return getTransactionManager().suspend();
 	}
@@ -986,12 +969,12 @@ public class JtaTransactionManager extends AbstractPlatformTransactionManager
 	 * @see javax.transaction.TransactionManager#resume(javax.transaction.Transaction)
 	 */
 	protected void doJtaResume(@Nullable JtaTransactionObject txObject, Object suspendedTransaction)
-		throws InvalidTransactionException, SystemException {
+			throws InvalidTransactionException, SystemException {
 
 		if (getTransactionManager() == null) {
 			throw new TransactionSuspensionNotSupportedException(
 					"JtaTransactionManager needs a JTA TransactionManager for suspending a transaction: " +
-					"specify the 'transactionManager' or 'transactionManagerName' property");
+							"specify the 'transactionManager' or 'transactionManagerName' property");
 		}
 		getTransactionManager().resume((Transaction) suspendedTransaction);
 	}

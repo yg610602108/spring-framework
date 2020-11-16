@@ -16,10 +16,10 @@
 
 package org.springframework.context.annotation;
 
-import java.util.Objects;
-
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.lang.Nullable;
+
+import java.util.Objects;
 
 /**
  * A variation of {@link ImportSelector} that runs after all {@code @Configuration} beans
@@ -49,7 +49,6 @@ public interface DeferredImportSelector extends ImportSelector {
 	default Class<? extends Group> getImportGroup() {
 		return null;
 	}
-
 
 	/**
 	 * Interface used to group results from different import selectors.
@@ -116,7 +115,9 @@ public interface DeferredImportSelector extends ImportSelector {
 			public int hashCode() {
 				return Objects.hash(this.metadata, this.importClassName);
 			}
+
 		}
+
 	}
 
 }

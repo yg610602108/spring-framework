@@ -16,23 +16,8 @@
 
 package org.springframework.aop.framework;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.aopalliance.aop.Advice;
-
-import org.springframework.aop.Advisor;
-import org.springframework.aop.DynamicIntroductionAdvice;
-import org.springframework.aop.IntroductionAdvisor;
-import org.springframework.aop.IntroductionInfo;
-import org.springframework.aop.TargetSource;
+import org.springframework.aop.*;
 import org.springframework.aop.support.DefaultIntroductionAdvisor;
 import org.springframework.aop.support.DefaultPointcutAdvisor;
 import org.springframework.aop.target.EmptyTargetSource;
@@ -41,6 +26,12 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Base class for AOP proxy configuration managers.
@@ -63,13 +54,11 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 	/** use serialVersionUID from Spring 2.0 for interoperability. */
 	private static final long serialVersionUID = 2651364800145442165L;
 
-
 	/**
 	 * Canonical TargetSource when there's no target, and behavior is
 	 * supplied by the advisors.
 	 */
 	public static final TargetSource EMPTY_TARGET_SOURCE = EmptyTargetSource.INSTANCE;
-
 
 	/** Package-protected to allow direct access for efficiency. */
 	TargetSource targetSource = EMPTY_TARGET_SOURCE;
@@ -101,7 +90,6 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 	 */
 	private Advisor[] advisorArray = new Advisor[0];
 
-
 	/**
 	 * No-arg constructor for use as a JavaBean.
 	 */
@@ -117,7 +105,6 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 		this();
 		setInterfaces(interfaces);
 	}
-
 
 	/**
 	 * Set the given object as target.
@@ -188,7 +175,6 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 		return this.advisorChainFactory;
 	}
 
-
 	/**
 	 * Set the interfaces to be proxied.
 	 */
@@ -240,7 +226,6 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 		}
 		return false;
 	}
-
 
 	@Override
 	public final Advisor[] getAdvisors() {
@@ -304,7 +289,8 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 	}
 
 	@Override
-	public boolean replaceAdvisor(Advisor a, Advisor b) throws AopConfigException {
+	public boolean replaceAdvisor(Advisor a,
+								  Advisor b) throws AopConfigException {
 		Assert.notNull(a, "Advisor a must not be null");
 		Assert.notNull(b, "Advisor b must not be null");
 		int index = indexOf(a);
@@ -354,7 +340,8 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 		}
 	}
 
-	private void addAdvisorInternal(int pos, Advisor advisor) throws AopConfigException {
+	private void addAdvisorInternal(int pos,
+									Advisor advisor) throws AopConfigException {
 		Assert.notNull(advisor, "Advisor must not be null");
 		if (isFrozen()) {
 			throw new AopConfigException("Cannot add advisor: Configuration is frozen.");
@@ -383,7 +370,6 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 	protected final List<Advisor> getAdvisorsInternal() {
 		return this.advisors;
 	}
-
 
 	@Override
 	public void addAdvice(Advice advice) throws AopConfigException {
@@ -470,20 +456,33 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 
 
 	/**
+	 * 根据此配置，确定给定方法的 MethodInterceptor 对象列表
+	 *
 	 * Determine a list of {@link org.aopalliance.intercept.MethodInterceptor} objects
 	 * for the given method, based on this configuration.
 	 * @param method the proxied method
 	 * @param targetClass the target class
 	 * @return a List of MethodInterceptors (may also include InterceptorAndDynamicMethodMatchers)
 	 */
-	public List<Object> getInterceptorsAndDynamicInterceptionAdvice(Method method, @Nullable Class<?> targetClass) {
+	public List<Object> getInterceptorsAndDynamicInterceptionAdvice(Method method,
+																	@Nullable Class<?> targetClass) {
+		/**
+		 * 目标对象方法的缓存键
+		 *
+		 * public abstract int com.ambition.service.Calculate.add(int,int)
+		 * public abstract void com.ambition.service.PayService.pay()
+		 **/
 		MethodCacheKey cacheKey = new MethodCacheKey(method);
+		// 先去缓存中获取
 		List<Object> cached = this.methodCache.get(cacheKey);
 		if (cached == null) {
+			// 缓存中没有，则进行逻辑解析
 			cached = this.advisorChainFactory.getInterceptorsAndDynamicInterceptionAdvice(
 					this, method, targetClass);
+			// 放入缓存中
 			this.methodCache.put(cacheKey, cached);
 		}
+
 		return cached;
 	}
 
@@ -510,7 +509,9 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 	 * @param targetSource the new TargetSource
 	 * @param advisors the Advisors for the chain
 	 */
-	protected void copyConfigurationFrom(AdvisedSupport other, TargetSource targetSource, List<Advisor> advisors) {
+	protected void copyConfigurationFrom(AdvisedSupport other,
+										 TargetSource targetSource,
+										 List<Advisor> advisors) {
 		copyFrom(other);
 		this.targetSource = targetSource;
 		this.advisorChainFactory = other.advisorChainFactory;
@@ -615,6 +616,7 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 			}
 			return result;
 		}
+
 	}
 
 }

@@ -16,31 +16,14 @@
 
 package org.springframework.util;
 
+import org.springframework.lang.Nullable;
+
 import java.beans.Introspector;
 import java.io.Closeable;
 import java.io.Externalizable;
 import java.io.Serializable;
-import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Proxy;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.StringJoiner;
-
-import org.springframework.lang.Nullable;
+import java.lang.reflect.*;
+import java.util.*;
 
 /**
  * Miscellaneous {@code java.lang.Class} utility methods.
@@ -84,12 +67,16 @@ public abstract class ClassUtils {
 	/**
 	 * Map with primitive wrapper type as key and corresponding primitive
 	 * type as value, for example: Integer.class -> int.class.
+	 *
+	 * 使用原始包装器类型作为 key 和对应的基本类型作为 value 的映射集合
 	 */
 	private static final Map<Class<?>, Class<?>> primitiveWrapperTypeMap = new IdentityHashMap<>(8);
 
 	/**
 	 * Map with primitive type as key and corresponding wrapper
 	 * type as value, for example: int.class -> Integer.class.
+	 *
+	 * 以基本类型为 key 和对应的包装器类型为 value 的映射集合
 	 */
 	private static final Map<Class<?>, Class<?>> primitiveTypeToWrapperMap = new IdentityHashMap<>(8);
 
@@ -518,6 +505,9 @@ public abstract class ClassUtils {
 	}
 
 	/**
+	 * 假设通过反射进行设置，检查是否可以将右侧类型分配给左侧类型
+	 * 将原始包装器类视为可分配给相应的原始类型
+	 *
 	 * Check if the right-hand side type may be assigned to the left-hand side
 	 * type, assuming setting by reflection. Considers primitive wrapper
 	 * classes as assignable to the corresponding primitive types.
@@ -529,31 +519,54 @@ public abstract class ClassUtils {
 	public static boolean isAssignable(Class<?> lhsType, Class<?> rhsType) {
 		Assert.notNull(lhsType, "Left-hand side type must not be null");
 		Assert.notNull(rhsType, "Right-hand side type must not be null");
+		/**
+		 * 确定此 Class 对象表示的类或接口是否与指定的 Class 参数表示的类或接口相同，或者是该类或接口的超类或超接口
+		 * 如果此 Class 对象表示基本类型，则确定指定的 Class 参数是此 Class 对象
+		 *
+		 * 若左边类和右边类相同，或者是右边类的父类或父接口
+		 **/
 		if (lhsType.isAssignableFrom(rhsType)) {
 			return true;
 		}
+
+		// 左边类是基本数据类型
 		if (lhsType.isPrimitive()) {
+			/**
+			 * 从 primitiveWrapperTypeMap 集合中获取对应的基本类型
+			 **/
 			Class<?> resolvedPrimitive = primitiveWrapperTypeMap.get(rhsType);
+			// 判断类型是否一致
 			if (lhsType == resolvedPrimitive) {
 				return true;
 			}
 		}
+		// 不是基本数据类型
 		else {
+			/**
+			 * 从 primitiveTypeToWrapperMap 集合中获取对应的包装器类型
+			 **/
 			Class<?> resolvedWrapper = primitiveTypeToWrapperMap.get(rhsType);
+			// 包装器类型不为 null 并且 和左边类相同或者是左边类的子类或子接口
 			if (resolvedWrapper != null && lhsType.isAssignableFrom(resolvedWrapper)) {
 				return true;
 			}
 		}
+
 		return false;
 	}
 
 	/**
+	 * 假设通过反射进行设置，校验给定类型是否可以从给定值分配
+	 * 将原始包装器类视为可分配给相应的原始类型
+	 *
+	 * 若 value 为 null，则校验其是否不是原始类型
+	 *
 	 * Determine if the given type is assignable from the given value,
 	 * assuming setting by reflection. Considers primitive wrapper classes
 	 * as assignable to the corresponding primitive types.
-	 * @param type the target type
-	 * @param value the value that should be assigned to the type
-	 * @return if the type is assignable from the value
+	 * @param type the target type 								  目标类型
+	 * @param value the value that should be assigned to the type 应该分配给类型的值
+	 * @return if the type is assignable from the value           如果类型可以从给定值分配
 	 */
 	public static boolean isAssignableValue(Class<?> type, @Nullable Object value) {
 		Assert.notNull(type, "Type must not be null");
@@ -723,6 +736,8 @@ public abstract class ClassUtils {
 	}
 
 	/**
+	 * 返回给定类实现的所有接口，包括由超类实现的接口
+	 *
 	 * Return all interfaces that the given class implements as a Set,
 	 * including ones implemented by superclasses.
 	 * <p>If the class itself is an interface, it gets returned as sole interface.
@@ -882,6 +897,8 @@ public abstract class ClassUtils {
 	}
 
 	/**
+	 * 返回给定类的用户定义类：通常只是给定类，但对于 CGLIB 生成的子类，则返回原始类。
+	 *
 	 * Return the user-defined class for the given class: usually simply the given
 	 * class, but the original class in case of a CGLIB-generated subclass.
 	 * @param clazz the class to check
@@ -1172,7 +1189,7 @@ public abstract class ClassUtils {
 	/**
 	 * Return the number of methods with a given name (with any argument types),
 	 * for the given class and/or its superclasses. Includes non-public methods.
-	 * @param clazz	the clazz to check
+	 * @param clazz    the clazz to check
 	 * @param methodName the name of the method
 	 * @return the number of methods with the given name
 	 */
@@ -1200,7 +1217,7 @@ public abstract class ClassUtils {
 	 * Does the given class or one of its superclasses at least have one or more
 	 * methods with the supplied name (with any argument types)?
 	 * Includes non-public methods.
-	 * @param clazz	the clazz to check
+	 * @param clazz    the clazz to check
 	 * @param methodName the name of the method
 	 * @return whether there is at least one method with the given name
 	 */
@@ -1362,4 +1379,5 @@ public abstract class ClassUtils {
 		}
 		return candidates;
 	}
+
 }

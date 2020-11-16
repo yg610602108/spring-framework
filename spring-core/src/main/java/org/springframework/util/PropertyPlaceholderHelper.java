@@ -16,16 +16,11 @@
 
 package org.springframework.util;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.lang.Nullable;
+
+import java.util.*;
 
 /**
  * Utility class for working with Strings that have placeholder values in them. A placeholder takes the form
@@ -68,7 +63,8 @@ public class PropertyPlaceholderHelper {
 	 * @param placeholderPrefix the prefix that denotes the start of a placeholder
 	 * @param placeholderSuffix the suffix that denotes the end of a placeholder
 	 */
-	public PropertyPlaceholderHelper(String placeholderPrefix, String placeholderSuffix) {
+	public PropertyPlaceholderHelper(String placeholderPrefix,
+									 String placeholderSuffix) {
 		this(placeholderPrefix, placeholderSuffix, null, true);
 	}
 
@@ -81,8 +77,10 @@ public class PropertyPlaceholderHelper {
 	 * @param ignoreUnresolvablePlaceholders indicates whether unresolvable placeholders should
 	 * be ignored ({@code true}) or cause an exception ({@code false})
 	 */
-	public PropertyPlaceholderHelper(String placeholderPrefix, String placeholderSuffix,
-			@Nullable String valueSeparator, boolean ignoreUnresolvablePlaceholders) {
+	public PropertyPlaceholderHelper(String placeholderPrefix,
+									 String placeholderSuffix,
+									 @Nullable String valueSeparator,
+									 boolean ignoreUnresolvablePlaceholders) {
 
 		Assert.notNull(placeholderPrefix, "'placeholderPrefix' must not be null");
 		Assert.notNull(placeholderSuffix, "'placeholderSuffix' must not be null");
@@ -124,8 +122,9 @@ public class PropertyPlaceholderHelper {
 		return parseStringValue(value, placeholderResolver, null);
 	}
 
-	protected String parseStringValue(
-			String value, PlaceholderResolver placeholderResolver, @Nullable Set<String> visitedPlaceholders) {
+	protected String parseStringValue(String value,
+									  PlaceholderResolver placeholderResolver,
+									  @Nullable Set<String> visitedPlaceholders) {
 
 		int startIndex = value.indexOf(this.placeholderPrefix);
 		if (startIndex == -1) {
@@ -225,6 +224,7 @@ public class PropertyPlaceholderHelper {
 		 */
 		@Nullable
 		String resolvePlaceholder(String placeholderName);
+
 	}
 
 }

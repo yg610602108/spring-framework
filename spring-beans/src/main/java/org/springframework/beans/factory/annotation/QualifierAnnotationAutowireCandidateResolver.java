@@ -348,9 +348,10 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 	@Nullable
 	public Object getSuggestedValue(DependencyDescriptor descriptor) {
 		Object value = findValue(descriptor.getAnnotations());
-		if (value == null) {
+		if (value == null) {// 获取方法参数
 			MethodParameter methodParam = descriptor.getMethodParameter();
 			if (methodParam != null) {
+				// 解析 @Value 注解
 				value = findValue(methodParam.getMethodAnnotations());
 			}
 		}
@@ -362,13 +363,17 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 	 */
 	@Nullable
 	protected Object findValue(Annotation[] annotationsToSearch) {
-		if (annotationsToSearch.length > 0) {   // qualifier annotations have to be local
+		// qualifier annotations have to be local
+		if (annotationsToSearch.length > 0) {
 			AnnotationAttributes attr = AnnotatedElementUtils.getMergedAnnotationAttributes(
-					AnnotatedElementUtils.forAnnotations(annotationsToSearch), this.valueAnnotationType);
+					AnnotatedElementUtils.forAnnotations(annotationsToSearch),
+					this.valueAnnotationType
+			);
 			if (attr != null) {
 				return extractValue(attr);
 			}
 		}
+
 		return null;
 	}
 

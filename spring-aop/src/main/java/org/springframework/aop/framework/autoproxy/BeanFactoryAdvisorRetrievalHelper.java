@@ -47,7 +47,6 @@ public class BeanFactoryAdvisorRetrievalHelper {
 	@Nullable
 	private volatile String[] cachedAdvisorBeanNames;
 
-
 	/**
 	 * Create a new BeanFactoryAdvisorRetrievalHelper for the given BeanFactory.
 	 * @param beanFactory the ListableBeanFactory to scan
@@ -57,30 +56,52 @@ public class BeanFactoryAdvisorRetrievalHelper {
 		this.beanFactory = beanFactory;
 	}
 
-
 	/**
+	 * 在当前 beanFactory 中查找所有合格的 Advisor bean，忽略 FactoryBeans 并排除当前正在创建的 bean
+	 *
 	 * Find all eligible Advisor beans in the current bean factory,
 	 * ignoring FactoryBeans and excluding beans that are currently in creation.
 	 * @return the list of {@link org.springframework.aop.Advisor} beans
 	 * @see #isEligibleBean
 	 */
 	public List<Advisor> findAdvisorBeans() {
-		// Determine list of advisor bean names, if not cached already.
+		/**
+		 * Determine list of advisor bean names, if not cached already.、
+		 * 确定通知器程序 beanName 列表（如果尚未缓存）
+		 **/
 		String[] advisorNames = this.cachedAdvisorBeanNames;
+		// 没有则解析
 		if (advisorNames == null) {
-			// Do not initialize FactoryBeans here: We need to leave all regular beans
-			// uninitialized to let the auto-proxy creator apply to them!
+			/**
+			 * Do not initialize FactoryBeans here: We need to leave all regular beans
+			 * uninitialized to let the auto-proxy creator apply to them!
+			 *
+			 * 不要在这里初始化 FactoryBeans：我们需要保留所有未初始化的常规 bean，以使自动代理创建者对其应用
+			 *
+			 * 从容器中获取所有实现 Advisor 的 beanName
+			 *
+			 * 这里会有一个 org.springframework.transaction.config.internalTransactionAdvisor
+			 * 类为 BeanFactoryTransactionAttributeSourceAdvisor
+			 **/
 			advisorNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 					this.beanFactory, Advisor.class, true, false);
+			// 存入缓存
 			this.cachedAdvisorBeanNames = advisorNames;
 		}
+		// 没找到直接返回空集合
 		if (advisorNames.length == 0) {
 			return new ArrayList<>();
 		}
 
 		List<Advisor> advisors = new ArrayList<>();
+		// 遍历找到的通知器
 		for (String name : advisorNames) {
+			// beanName 是合格的通知
 			if (isEligibleBean(name)) {
+				/**
+				 * 下面调用 this.beanFactory.getBean(name, Advisor.class) 方法时，会将 name 标记为当前正在创建
+				 * 之后除非创建完成，否则不会走 else 分支
+				 **/
 				if (this.beanFactory.isCurrentlyInCreation(name)) {
 					if (logger.isTraceEnabled()) {
 						logger.trace("Skipping currently created advisor '" + name + "'");
@@ -88,6 +109,11 @@ public class BeanFactoryAdvisorRetrievalHelper {
 				}
 				else {
 					try {
+						/**
+						 * 创建 Advisor 实例
+						 *
+						 * 这里会创建 BeanFactoryTransactionAttributeSourceAdvisor
+						 **/
 						advisors.add(this.beanFactory.getBean(name, Advisor.class));
 					}
 					catch (BeanCreationException ex) {
@@ -114,6 +140,8 @@ public class BeanFactoryAdvisorRetrievalHelper {
 	}
 
 	/**
+	 * 确定具有给定名称的 aspect bean 是否合格
+	 *
 	 * Determine whether the aspect bean with the given name is eligible.
 	 * <p>The default implementation always returns {@code true}.
 	 * @param beanName the name of the aspect bean

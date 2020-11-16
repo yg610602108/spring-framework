@@ -156,6 +156,10 @@ import org.springframework.core.Ordered;
 public @interface EnableTransactionManagement {
 
 	/**
+	 * 指示是否要创建基于子类的（CGLIB）代理，而不是标准的基于 Java 接口的代理，默认值为 False
+	 *
+	 * 仅在{@link #mode()}设置为{@link AdviceMode＃PROXY}时适用
+	 *
 	 * Indicate whether subclass-based (CGLIB) proxies are to be created ({@code true}) as
 	 * opposed to standard Java interface-based proxies ({@code false}). The default is
 	 * {@code false}. <strong>Applicable only if {@link #mode()} is set to
@@ -170,6 +174,11 @@ public @interface EnableTransactionManagement {
 	boolean proxyTargetClass() default false;
 
 	/**
+	 * 指出如何应用事务通知
+	 *
+	 * AdviceMode.PROXY   基于 JDK 代理的通知
+	 * AdviceMode.ASPECTJ 基于 AspectJ 编织的通知
+	 *
 	 * Indicate how transactional advice should be applied.
 	 * <p><b>The default is {@link AdviceMode#PROXY}.</b>
 	 * Please note that proxy mode allows for interception of calls through the proxy
@@ -182,6 +191,8 @@ public @interface EnableTransactionManagement {
 	AdviceMode mode() default AdviceMode.PROXY;
 
 	/**
+	 * 当在特定的连接点上应用多个通知时，指示事务增强器的执行顺序
+	 *
 	 * Indicate the ordering of the execution of the transaction advisor
 	 * when multiple advices are applied at a specific joinpoint.
 	 * <p>The default is {@link Ordered#LOWEST_PRECEDENCE}.

@@ -31,7 +31,6 @@ public class AssignableTypeFilter extends AbstractTypeHierarchyTraversingFilter 
 
 	private final Class<?> targetType;
 
-
 	/**
 	 * Create a new AssignableTypeFilter for the given type.
 	 * @param targetType the type to match

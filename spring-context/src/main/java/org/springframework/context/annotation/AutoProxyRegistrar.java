@@ -16,15 +16,14 @@
 
 package org.springframework.context.annotation;
 
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.aop.config.AopConfigUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.type.AnnotationMetadata;
+
+import java.util.Set;
 
 /**
  * Registers an auto proxy creator against the current {@link BeanDefinitionRegistry}
@@ -55,21 +54,37 @@ public class AutoProxyRegistrar implements ImportBeanDefinitionRegistrar {
 	 * the same.
 	 */
 	@Override
-	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata,
+										BeanDefinitionRegistry registry) {
 		boolean candidateFound = false;
 		Set<String> annTypes = importingClassMetadata.getAnnotationTypes();
 		for (String annType : annTypes) {
+			// 获取注解
 			AnnotationAttributes candidate = AnnotationConfigUtils.attributesFor(importingClassMetadata, annType);
 			if (candidate == null) {
 				continue;
 			}
+			// 解析 mode 注解值
 			Object mode = candidate.get("mode");
+			// 解析 proxyTargetClass 注解值
 			Object proxyTargetClass = candidate.get("proxyTargetClass");
-			if (mode != null && proxyTargetClass != null && AdviceMode.class == mode.getClass() &&
-					Boolean.class == proxyTargetClass.getClass()) {
+			// 校验
+			if (mode != null && proxyTargetClass != null && AdviceMode.class == mode.getClass()
+					&& Boolean.class == proxyTargetClass.getClass()) {
 				candidateFound = true;
+				/**
+				 * 基于 JDK 代理的通知，不指定则默认
+				 *
+				 * @see org.springframework.transaction.annotation.EnableTransactionManagement#mode()
+				 **/
 				if (mode == AdviceMode.PROXY) {
+					// 注册 InfrastructureAdvisorAutoProxyCreator 组件
 					AopConfigUtils.registerAutoProxyCreatorIfNecessary(registry);
+					/**
+					 * 默认是 False
+					 *
+					 * @see org.springframework.transaction.annotation.EnableTransactionManagement#proxyTargetClass()
+					 **/
 					if ((Boolean) proxyTargetClass) {
 						AopConfigUtils.forceAutoProxyCreatorToUseClassProxying(registry);
 						return;

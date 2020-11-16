@@ -16,16 +16,6 @@
 
 package org.springframework.orm.jpa;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
-import javax.persistence.PersistenceException;
-import javax.persistence.RollbackException;
-import javax.sql.DataSource;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -38,21 +28,16 @@ import org.springframework.jdbc.datasource.ConnectionHolder;
 import org.springframework.jdbc.datasource.JdbcTransactionObjectSupport;
 import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
 import org.springframework.lang.Nullable;
-import org.springframework.transaction.CannotCreateTransactionException;
-import org.springframework.transaction.IllegalTransactionStateException;
-import org.springframework.transaction.NestedTransactionNotSupportedException;
-import org.springframework.transaction.SavepointManager;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionException;
-import org.springframework.transaction.TransactionSystemException;
-import org.springframework.transaction.support.AbstractPlatformTransactionManager;
-import org.springframework.transaction.support.DefaultTransactionStatus;
-import org.springframework.transaction.support.DelegatingTransactionDefinition;
-import org.springframework.transaction.support.ResourceTransactionDefinition;
-import org.springframework.transaction.support.ResourceTransactionManager;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.*;
+import org.springframework.transaction.support.*;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+
+import javax.persistence.*;
+import javax.sql.DataSource;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * {@link org.springframework.transaction.PlatformTransactionManager} implementation
@@ -127,7 +112,6 @@ public class JpaTransactionManager extends AbstractPlatformTransactionManager
 
 	private JpaDialect jpaDialect = new DefaultJpaDialect();
 
-
 	/**
 	 * Create a new JpaTransactionManager instance.
 	 * <p>An EntityManagerFactory has to be set to be able to use it.
@@ -146,7 +130,6 @@ public class JpaTransactionManager extends AbstractPlatformTransactionManager
 		this.entityManagerFactory = emf;
 		afterPropertiesSet();
 	}
-
 
 	/**
 	 * Set the EntityManagerFactory that this instance should manage transactions for.
@@ -337,7 +320,6 @@ public class JpaTransactionManager extends AbstractPlatformTransactionManager
 		}
 	}
 
-
 	@Override
 	public Object getResourceFactory() {
 		return obtainEntityManagerFactory();
@@ -379,9 +361,9 @@ public class JpaTransactionManager extends AbstractPlatformTransactionManager
 		if (txObject.hasConnectionHolder() && !txObject.getConnectionHolder().isSynchronizedWithTransaction()) {
 			throw new IllegalTransactionStateException(
 					"Pre-bound JDBC Connection found! JpaTransactionManager does not support " +
-					"running within DataSourceTransactionManager if told to manage the DataSource itself. " +
-					"It is recommended to use a single JpaTransactionManager for all transactions " +
-					"on a single DataSource, no matter whether JPA or JDBC access.");
+							"running within DataSourceTransactionManager if told to manage the DataSource itself. " +
+							"It is recommended to use a single JpaTransactionManager for all transactions " +
+							"on a single DataSource, no matter whether JPA or JDBC access.");
 		}
 
 		try {
@@ -624,7 +606,6 @@ public class JpaTransactionManager extends AbstractPlatformTransactionManager
 		}
 	}
 
-
 	/**
 	 * JPA transaction object, representing a EntityManagerHolder.
 	 * Used as transaction object by JpaTransactionManager.
@@ -734,6 +715,7 @@ public class JpaTransactionManager extends AbstractPlatformTransactionManager
 			}
 			return savepointManager;
 		}
+
 	}
 
 
@@ -763,8 +745,8 @@ public class JpaTransactionManager extends AbstractPlatformTransactionManager
 		public boolean isLocalResource() {
 			return this.localResource;
 		}
-	}
 
+	}
 
 	/**
 	 * Holder for suspended resources.
@@ -790,6 +772,7 @@ public class JpaTransactionManager extends AbstractPlatformTransactionManager
 		private ConnectionHolder getConnectionHolder() {
 			return this.connectionHolder;
 		}
+
 	}
 
 }

@@ -16,10 +16,10 @@
 
 package org.springframework.beans.factory.config;
 
-import java.lang.reflect.Constructor;
-
 import org.springframework.beans.BeansException;
 import org.springframework.lang.Nullable;
+
+import java.lang.reflect.Constructor;
 
 /**
  * Extension of the {@link InstantiationAwareBeanPostProcessor} interface,
@@ -47,7 +47,8 @@ public interface SmartInstantiationAwareBeanPostProcessor extends InstantiationA
 	 * @throws org.springframework.beans.BeansException in case of errors
 	 */
 	@Nullable
-	default Class<?> predictBeanType(Class<?> beanClass, String beanName) throws BeansException {
+	default Class<?> predictBeanType(Class<?> beanClass,
+									 String beanName) throws BeansException {
 		return null;
 	}
 
@@ -60,9 +61,8 @@ public interface SmartInstantiationAwareBeanPostProcessor extends InstantiationA
 	 * @throws org.springframework.beans.BeansException in case of errors
 	 */
 	@Nullable
-	default Constructor<?>[] determineCandidateConstructors(Class<?> beanClass, String beanName)
-			throws BeansException {
-
+	default Constructor<?>[] determineCandidateConstructors(Class<?> beanClass,
+															String beanName) throws BeansException {
 		return null;
 	}
 
@@ -87,7 +87,8 @@ public interface SmartInstantiationAwareBeanPostProcessor extends InstantiationA
 	 * (typically with the passed-in bean instance as default)
 	 * @throws org.springframework.beans.BeansException in case of errors
 	 */
-	default Object getEarlyBeanReference(Object bean, String beanName) throws BeansException {
+	default Object getEarlyBeanReference(Object bean,
+										 String beanName) throws BeansException {
 		return bean;
 	}
 

@@ -22,6 +22,11 @@ import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.core.type.AnnotationMetadata;
 
 /**
+ * Spring 框架提供的扩展接口
+ *
+ * 可以往 BeanDefinition 集合中手动添加一个 BeanDefinition
+ * 通过调用 BeanDefinitionRegistry 的 registerBeanDefinition 方法来实现
+ *
  * Interface to be implemented by types that register additional bean definitions when
  * processing @{@link Configuration} classes. Useful when operating at the bean definition
  * level (as opposed to {@code @Bean} method/instance level) is desired or necessary.
@@ -52,6 +57,10 @@ import org.springframework.core.type.AnnotationMetadata;
 public interface ImportBeanDefinitionRegistrar {
 
 	/**
+	 * 根据导入的 @Configuration 类的给定注释元数据，根据需要注册 BeanDefinition
+	 * 请注意，由于与 @Configuration 类处理相关的生命周期限制
+	 * BeanDefinitionRegistryPostProcessor 类型可能不会在此处注册
+	 *
 	 * Register bean definitions as necessary based on the given annotation metadata of
 	 * the importing {@code @Configuration} class.
 	 * <p>Note that {@link BeanDefinitionRegistryPostProcessor} types may <em>not</em> be
@@ -71,13 +80,18 @@ public interface ImportBeanDefinitionRegistrar {
 	 * @see ConfigurationClassPostProcessor#IMPORT_BEAN_NAME_GENERATOR
 	 * @see ConfigurationClassPostProcessor#setBeanNameGenerator
 	 */
-	default void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry,
-			BeanNameGenerator importBeanNameGenerator) {
+	default void registerBeanDefinitions(AnnotationMetadata importingClassMetadata,
+										 BeanDefinitionRegistry registry,
+										 BeanNameGenerator importBeanNameGenerator) {
 
 		registerBeanDefinitions(importingClassMetadata, registry);
 	}
 
 	/**
+	 * 根据导入的 @Configuration 类的给定注释元数据，根据需要注册 BeanDefinition
+	 * 请注意，由于与 @Configuration 类处理相关的生命周期限制
+	 * BeanDefinitionRegistryPostProcessor 类型可能不会在此处注册
+	 *
 	 * Register bean definitions as necessary based on the given annotation metadata of
 	 * the importing {@code @Configuration} class.
 	 * <p>Note that {@link BeanDefinitionRegistryPostProcessor} types may <em>not</em> be
@@ -87,7 +101,8 @@ public interface ImportBeanDefinitionRegistrar {
 	 * @param importingClassMetadata annotation metadata of the importing class
 	 * @param registry current bean definition registry
 	 */
-	default void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+	default void registerBeanDefinitions(AnnotationMetadata importingClassMetadata,
+										 BeanDefinitionRegistry registry) {
 	}
 
 }

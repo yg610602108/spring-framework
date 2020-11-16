@@ -39,6 +39,13 @@ import org.springframework.lang.Nullable;
 @SuppressWarnings("serial")
 public class GenericBeanDefinition extends AbstractBeanDefinition {
 
+	/**
+	 * RootBeanDefinition 不能作为子 BeanDefinition
+	 * ChildBeanDefinition 不能作为父 BeanDefinition
+	 * GenericBeanDefinition 可以作为父 BeanDefinition，也可以作为子 BeanDefinition，还能作为普通 BeanDefinition
+	 * 可以替代 ChildBeanDefinition，但是不能替代 RootBeanDefinition
+	 **/
+
 	@Nullable
 	private String parentName;
 

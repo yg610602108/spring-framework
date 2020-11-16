@@ -41,8 +41,10 @@ abstract class ParserStrategyUtils {
 	 * {@link EnvironmentAware}, and {@link ResourceLoaderAware} contracts
 	 * if implemented by the given object.
 	 */
-	public static void invokeAwareMethods(Object parserStrategyBean, Environment environment,
-			ResourceLoader resourceLoader, BeanDefinitionRegistry registry) {
+	public static void invokeAwareMethods(Object parserStrategyBean,
+										  Environment environment,
+										  ResourceLoader resourceLoader,
+										  BeanDefinitionRegistry registry) {
 
 		if (parserStrategyBean instanceof Aware) {
 			if (parserStrategyBean instanceof BeanClassLoaderAware) {

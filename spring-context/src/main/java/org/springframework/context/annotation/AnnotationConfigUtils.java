@@ -16,11 +16,6 @@
 
 package org.springframework.context.annotation;
 
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -37,6 +32,11 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
+
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Utility class that allows for convenient registration of common
@@ -130,6 +130,8 @@ public abstract class AnnotationConfigUtils {
 
 
 	/**
+	 * 在给定的 BeanDefinitionRegistry 中注册所有相关的注解后置处理器
+	 *
 	 * Register all relevant annotation post processors in the given registry.
 	 * @param registry the registry to operate on
 	 */
@@ -138,6 +140,8 @@ public abstract class AnnotationConfigUtils {
 	}
 
 	/**
+	 * 在给定的 BeanDefinitionRegistry 中注册所有相关的注解后置处理器
+	 *
 	 * Register all relevant annotation post processors in the given registry.
 	 * @param registry the registry to operate on
 	 * @param source the configuration source element (already extracted)
@@ -145,27 +149,64 @@ public abstract class AnnotationConfigUtils {
 	 * @return a Set of BeanDefinitionHolders, containing all bean definitions
 	 * that have actually been registered by this call
 	 */
-	public static Set<BeanDefinitionHolder> registerAnnotationConfigProcessors(
-			BeanDefinitionRegistry registry, @Nullable Object source) {
-
+	public static Set<BeanDefinitionHolder> registerAnnotationConfigProcessors(BeanDefinitionRegistry registry,
+																			   @Nullable Object source) {
+		// 获取 Bean 工厂
 		DefaultListableBeanFactory beanFactory = unwrapDefaultListableBeanFactory(registry);
 		if (beanFactory != null) {
 			if (!(beanFactory.getDependencyComparator() instanceof AnnotationAwareOrderComparator)) {
+				/**
+				 * AnnotationAwareOrderComparator 主要能解析 @Order 注解和 @Priority 注解
+				 **/
 				beanFactory.setDependencyComparator(AnnotationAwareOrderComparator.INSTANCE);
 			}
 			if (!(beanFactory.getAutowireCandidateResolver() instanceof ContextAnnotationAutowireCandidateResolver)) {
+				/**
+				 * ContextAnnotationAutowireCandidateResolver 提供处理延迟加载的功能
+				 **/
 				beanFactory.setAutowireCandidateResolver(new ContextAnnotationAutowireCandidateResolver());
 			}
 		}
 
+		// 存放所有辅助类
 		Set<BeanDefinitionHolder> beanDefs = new LinkedHashSet<>(8);
 
+		/**
+		 * BeanDefinition 的注册，很重要，需要理解注册的每个 Bean 的类型和作用
+		 *
+		 * Spring 在初始化 ApplicationContext 和 BeanFactory 时，在 BeanFactory 中添加了很多辅助初始化 Bean 的类
+		 *
+		 * 1.ConfigurationClassPostProcessor             类型是 BeanFactoryPostProcessor
+		 *
+		 * 2.AutowiredAnnotationBeanPostProcessor        类型是 BeanPostProcessor
+		 *
+		 * 3.CommonAnnotationBeanPostProcessor           类型是 BeanPostProcessor
+		 *
+		 * 4.PersistenceAnnotationBeanPostProcessor      类型是 BeanPostProcessor
+		 *
+		 * 5.EventListenerMethodProcessor                类型是 BeanFactoryPostProcessor
+		 *
+		 * 6.DefaultEventListenerFactory                 类型是 EventListenerFactory
+		 */
+
+		/**
+		 * BeanName 是否包含 org.springframework.context.annotation.internalConfigurationAnnotationProcessor
+		 *
+		 * BeanClass 是 ConfigurationClassPostProcessor，类型是 BeanFactoryPostProcessor
+		 * @see ConfigurationClassPostProcessor
+		 */
 		if (!registry.containsBeanDefinition(CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(ConfigurationClassPostProcessor.class);
 			def.setSource(source);
 			beanDefs.add(registerPostProcessor(registry, def, CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
+		/**
+		 * BeanName 是否包含 org.springframework.context.annotation.internalAutowiredAnnotationProcessor
+		 *
+		 * BeanClass 是 AutowiredAnnotationBeanPostProcessor，类型是 BeanPostProcessor
+		 * @see AutowiredAnnotationBeanPostProcessor
+		 */
 		if (!registry.containsBeanDefinition(AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(AutowiredAnnotationBeanPostProcessor.class);
 			def.setSource(source);
@@ -173,6 +214,14 @@ public abstract class AnnotationConfigUtils {
 		}
 
 		// Check for JSR-250 support, and if present add the CommonAnnotationBeanPostProcessor.
+		/**
+		 * 检查 JSR-250 支持，存在则添加 CommonAnnotationBeanPostProcessor
+		 *
+		 * BeanName 是否包含 org.springframework.context.annotation.internalCommonAnnotationProcessor
+		 *
+		 * BeanClass 是 CommonAnnotationBeanPostProcessor，类型是 BeanPostProcessor
+		 * @see CommonAnnotationBeanPostProcessor
+		 */
 		if (jsr250Present && !registry.containsBeanDefinition(COMMON_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(CommonAnnotationBeanPostProcessor.class);
 			def.setSource(source);
@@ -180,6 +229,14 @@ public abstract class AnnotationConfigUtils {
 		}
 
 		// Check for JPA support, and if present add the PersistenceAnnotationBeanPostProcessor.
+		/**
+		 * 检查 JPA 支持，存在则添加 PersistenceAnnotationBeanPostProcessor
+		 *
+		 * BeanName 是否包含 org.springframework.context.annotation.internalPersistenceAnnotationProcessor
+		 *
+		 * BeanClass 是 PersistenceAnnotationBeanPostProcessor，类型是 BeanPostProcessor
+		 * @see org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor
+		 */
 		if (jpaPresent && !registry.containsBeanDefinition(PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition();
 			try {
@@ -194,12 +251,24 @@ public abstract class AnnotationConfigUtils {
 			beanDefs.add(registerPostProcessor(registry, def, PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
+		/**
+		 * BeanName 是否包含 org.springframework.context.event.internalEventListenerProcessor
+		 *
+		 * BeanClass 是 EventListenerMethodProcessor，类型是 BeanFactoryPostProcessor
+		 * @see EventListenerMethodProcessor
+		 */
 		if (!registry.containsBeanDefinition(EVENT_LISTENER_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(EventListenerMethodProcessor.class);
 			def.setSource(source);
 			beanDefs.add(registerPostProcessor(registry, def, EVENT_LISTENER_PROCESSOR_BEAN_NAME));
 		}
 
+		/**
+		 * BeanName 是否包含 org.springframework.context.event.internalEventListenerFactory
+		 *
+		 * BeanClass 是 DefaultEventListenerFactory，类型是 EventListenerFactory
+		 * @see DefaultEventListenerFactory
+		 */
 		if (!registry.containsBeanDefinition(EVENT_LISTENER_FACTORY_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(DefaultEventListenerFactory.class);
 			def.setSource(source);
@@ -209,8 +278,9 @@ public abstract class AnnotationConfigUtils {
 		return beanDefs;
 	}
 
-	private static BeanDefinitionHolder registerPostProcessor(
-			BeanDefinitionRegistry registry, RootBeanDefinition definition, String beanName) {
+	private static BeanDefinitionHolder registerPostProcessor(BeanDefinitionRegistry registry,
+															  RootBeanDefinition definition,
+															  String beanName) {
 
 		definition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 		registry.registerBeanDefinition(beanName, definition);
@@ -234,7 +304,8 @@ public abstract class AnnotationConfigUtils {
 		processCommonDefinitionAnnotations(abd, abd.getMetadata());
 	}
 
-	static void processCommonDefinitionAnnotations(AnnotatedBeanDefinition abd, AnnotatedTypeMetadata metadata) {
+	static void processCommonDefinitionAnnotations(AnnotatedBeanDefinition abd,
+												   AnnotatedTypeMetadata metadata) {
 		AnnotationAttributes lazy = attributesFor(metadata, Lazy.class);
 		if (lazy != null) {
 			abd.setLazyInit(lazy.getBoolean("value"));
@@ -264,8 +335,9 @@ public abstract class AnnotationConfigUtils {
 		}
 	}
 
-	static BeanDefinitionHolder applyScopedProxyMode(
-			ScopeMetadata metadata, BeanDefinitionHolder definition, BeanDefinitionRegistry registry) {
+	static BeanDefinitionHolder applyScopedProxyMode(ScopeMetadata metadata,
+													 BeanDefinitionHolder definition,
+													 BeanDefinitionRegistry registry) {
 
 		ScopedProxyMode scopedProxyMode = metadata.getScopedProxyMode();
 		if (scopedProxyMode.equals(ScopedProxyMode.NO)) {
@@ -276,24 +348,28 @@ public abstract class AnnotationConfigUtils {
 	}
 
 	@Nullable
-	static AnnotationAttributes attributesFor(AnnotatedTypeMetadata metadata, Class<?> annotationClass) {
+	static AnnotationAttributes attributesFor(AnnotatedTypeMetadata metadata,
+											  Class<?> annotationClass) {
 		return attributesFor(metadata, annotationClass.getName());
 	}
 
 	@Nullable
-	static AnnotationAttributes attributesFor(AnnotatedTypeMetadata metadata, String annotationClassName) {
+	static AnnotationAttributes attributesFor(AnnotatedTypeMetadata metadata,
+											  String annotationClassName) {
 		return AnnotationAttributes.fromMap(metadata.getAnnotationAttributes(annotationClassName, false));
 	}
 
 	static Set<AnnotationAttributes> attributesForRepeatable(AnnotationMetadata metadata,
-			Class<?> containerClass, Class<?> annotationClass) {
+															 Class<?> containerClass,
+															 Class<?> annotationClass) {
 
 		return attributesForRepeatable(metadata, containerClass.getName(), annotationClass.getName());
 	}
 
 	@SuppressWarnings("unchecked")
-	static Set<AnnotationAttributes> attributesForRepeatable(
-			AnnotationMetadata metadata, String containerClassName, String annotationClassName) {
+	static Set<AnnotationAttributes> attributesForRepeatable(AnnotationMetadata metadata,
+															 String containerClassName,
+															 String annotationClassName) {
 
 		Set<AnnotationAttributes> result = new LinkedHashSet<>();
 
@@ -312,8 +388,8 @@ public abstract class AnnotationConfigUtils {
 		return Collections.unmodifiableSet(result);
 	}
 
-	private static void addAttributesIfNotNull(
-			Set<AnnotationAttributes> result, @Nullable Map<String, Object> attributes) {
+	private static void addAttributesIfNotNull(Set<AnnotationAttributes> result,
+											   @Nullable Map<String, Object> attributes) {
 
 		if (attributes != null) {
 			result.add(AnnotationAttributes.fromMap(attributes));

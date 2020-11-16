@@ -16,10 +16,10 @@
 
 package org.springframework.transaction.interceptor;
 
-import java.io.Serializable;
-
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.DelegatingTransactionDefinition;
+
+import java.io.Serializable;
 
 /**
  * {@link TransactionAttribute} implementation that delegates all calls to a given target
@@ -36,7 +36,6 @@ public abstract class DelegatingTransactionAttribute extends DelegatingTransacti
 
 	private final TransactionAttribute targetAttribute;
 
-
 	/**
 	 * Create a DelegatingTransactionAttribute for the given target attribute.
 	 * @param targetAttribute the target TransactionAttribute to delegate to
@@ -45,7 +44,6 @@ public abstract class DelegatingTransactionAttribute extends DelegatingTransacti
 		super(targetAttribute);
 		this.targetAttribute = targetAttribute;
 	}
-
 
 	@Override
 	@Nullable

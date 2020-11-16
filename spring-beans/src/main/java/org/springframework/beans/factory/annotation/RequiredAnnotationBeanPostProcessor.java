@@ -16,15 +16,6 @@
 
 package org.springframework.beans.factory.annotation;
 
-import java.beans.PropertyDescriptor;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.springframework.beans.PropertyValues;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -40,6 +31,15 @@ import org.springframework.core.PriorityOrdered;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import java.beans.PropertyDescriptor;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * {@link org.springframework.beans.factory.config.BeanPostProcessor} implementation
@@ -86,7 +86,6 @@ public class RequiredAnnotationBeanPostProcessor extends InstantiationAwareBeanP
 	public static final String SKIP_REQUIRED_CHECK_ATTRIBUTE =
 			Conventions.getQualifiedAttributeName(RequiredAnnotationBeanPostProcessor.class, "skipRequiredCheck");
 
-
 	private Class<? extends Annotation> requiredAnnotationType = Required.class;
 
 	private int order = Ordered.LOWEST_PRECEDENCE - 1;
@@ -98,7 +97,6 @@ public class RequiredAnnotationBeanPostProcessor extends InstantiationAwareBeanP
 	 * Cache for validated bean names, skipping re-validation for the same bean.
 	 */
 	private final Set<String> validatedBeanNames = Collections.newSetFromMap(new ConcurrentHashMap<>(64));
-
 
 	/**
 	 * Set the 'required' annotation type, to be used on bean property

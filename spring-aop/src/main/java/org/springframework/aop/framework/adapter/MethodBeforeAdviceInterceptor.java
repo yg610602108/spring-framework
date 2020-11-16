@@ -16,14 +16,13 @@
 
 package org.springframework.aop.framework.adapter;
 
-import java.io.Serializable;
-
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-
 import org.springframework.aop.BeforeAdvice;
 import org.springframework.aop.MethodBeforeAdvice;
 import org.springframework.util.Assert;
+
+import java.io.Serializable;
 
 /**
  * Interceptor to wrap am {@link org.springframework.aop.MethodBeforeAdvice}.
@@ -39,7 +38,6 @@ public class MethodBeforeAdviceInterceptor implements MethodInterceptor, BeforeA
 
 	private final MethodBeforeAdvice advice;
 
-
 	/**
 	 * Create a new MethodBeforeAdviceInterceptor for the given advice.
 	 * @param advice the MethodBeforeAdvice to wrap
@@ -52,7 +50,9 @@ public class MethodBeforeAdviceInterceptor implements MethodInterceptor, BeforeA
 
 	@Override
 	public Object invoke(MethodInvocation mi) throws Throwable {
+		// 先执行前置通知
 		this.advice.before(mi.getMethod(), mi.getArguments(), mi.getThis());
+		// 返回
 		return mi.proceed();
 	}
 

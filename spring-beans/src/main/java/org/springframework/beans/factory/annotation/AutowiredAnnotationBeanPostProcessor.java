@@ -16,37 +16,13 @@
 
 package org.springframework.beans.factory.annotation;
 
-import java.beans.PropertyDescriptor;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.PropertyValues;
 import org.springframework.beans.TypeConverter;
-import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.BeanFactoryUtils;
-import org.springframework.beans.factory.InjectionPoint;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.UnsatisfiedDependencyException;
+import org.springframework.beans.factory.*;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.DependencyDescriptor;
 import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessorAdapter;
@@ -67,6 +43,12 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
+
+import java.beans.PropertyDescriptor;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.*;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * {@link org.springframework.beans.factory.config.BeanPostProcessor} implementation
@@ -231,6 +213,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 	@Override
 	public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
 		InjectionMetadata metadata = findAutowiringMetadata(beanName, beanType, null);
+		// 校验内部成员
 		metadata.checkConfigMembers(beanDefinition);
 	}
 
@@ -266,6 +249,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 								}
 							}
 						});
+						// 获取父类
 						targetClass = targetClass.getSuperclass();
 					}
 					while (targetClass != null && targetClass != Object.class);
@@ -283,32 +267,43 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 		if (candidateConstructors == null) {
 			// Fully synchronized resolution now...
 			synchronized (this.candidateConstructorsCache) {
+				// 缓存中获取
 				candidateConstructors = this.candidateConstructorsCache.get(beanClass);
 				if (candidateConstructors == null) {
+					// 原始候选构造器
 					Constructor<?>[] rawCandidates;
 					try {
+						// 获取声明的构造器
 						rawCandidates = beanClass.getDeclaredConstructors();
 					}
 					catch (Throwable ex) {
 						throw new BeanCreationException(beanName,
 								"Resolution of declared constructors on bean Class [" + beanClass.getName() +
-								"] from ClassLoader [" + beanClass.getClassLoader() + "] failed", ex);
+										"] from ClassLoader [" + beanClass.getClassLoader() + "] failed", ex);
 					}
+					// 所有候选构造器
 					List<Constructor<?>> candidates = new ArrayList<>(rawCandidates.length);
+					// 所需构造器
 					Constructor<?> requiredConstructor = null;
+					// 默认构造器【无参构造器】
 					Constructor<?> defaultConstructor = null;
+					// 首选构造器
 					Constructor<?> primaryConstructor = BeanUtils.findPrimaryConstructor(beanClass);
+					// 非合成构造器个数
 					int nonSyntheticConstructors = 0;
 					for (Constructor<?> candidate : rawCandidates) {
+						// 不是合成的
 						if (!candidate.isSynthetic()) {
 							nonSyntheticConstructors++;
 						}
 						else if (primaryConstructor != null) {
 							continue;
 						}
+						// 获取构造器上的 @Autowired 注解
 						MergedAnnotation<?> ann = findAutowiredAnnotation(candidate);
 						if (ann == null) {
-							Class<?> userClass = ClassUtils.getUserClass(beanClass);
+							// 获取给定的类
+							Class<?> userClass = ClassUtils.getUserClass(beanClass);// 配型不一致，可能是 FactoryBean
 							if (userClass != beanClass) {
 								try {
 									Constructor<?> superCtor =
@@ -324,27 +319,33 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 							if (requiredConstructor != null) {
 								throw new BeanCreationException(beanName,
 										"Invalid autowire-marked constructor: " + candidate +
-										". Found constructor with 'required' Autowired annotation already: " +
-										requiredConstructor);
+												". Found constructor with 'required' Autowired annotation already: " +
+												requiredConstructor);
 							}
 							boolean required = determineRequiredStatus(ann);
 							if (required) {
 								if (!candidates.isEmpty()) {
 									throw new BeanCreationException(beanName,
 											"Invalid autowire-marked constructors: " + candidates +
-											". Found constructor with 'required' Autowired annotation: " +
-											candidate);
+													". Found constructor with 'required' Autowired annotation: " +
+													candidate);
 								}
 								requiredConstructor = candidate;
 							}
 							candidates.add(candidate);
 						}
+						// 是无参构造器，将其设为默认构造器
 						else if (candidate.getParameterCount() == 0) {
 							defaultConstructor = candidate;
 						}
 					}
+					// 有候选构造器
 					if (!candidates.isEmpty()) {
-						// Add default constructor to list of optional constructors, as fallback.
+						/**
+						 * Add default constructor to list of optional constructors, as fallback.
+						 *
+						 * 将默认构造函数添加到可选构造函数列表中，作为后备
+						 **/
 						if (requiredConstructor == null) {
 							if (defaultConstructor != null) {
 								candidates.add(defaultConstructor);
@@ -358,16 +359,20 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 						}
 						candidateConstructors = candidates.toArray(new Constructor<?>[0]);
 					}
+					// 只有一个原始构造器，并且是有参构造器
 					else if (rawCandidates.length == 1 && rawCandidates[0].getParameterCount() > 0) {
-						candidateConstructors = new Constructor<?>[] {rawCandidates[0]};
+						candidateConstructors = new Constructor<?>[]{rawCandidates[0]};
 					}
+					// 非合成构造器个数为2 并且 有首选构造器 并且 有默认构造器 并且 首选构造器和默认构造器不一样
 					else if (nonSyntheticConstructors == 2 && primaryConstructor != null &&
 							defaultConstructor != null && !primaryConstructor.equals(defaultConstructor)) {
-						candidateConstructors = new Constructor<?>[] {primaryConstructor, defaultConstructor};
+						candidateConstructors = new Constructor<?>[]{primaryConstructor, defaultConstructor};
 					}
+					// 非合成构造器个数为1 并且 有首先构造器
 					else if (nonSyntheticConstructors == 1 && primaryConstructor != null) {
-						candidateConstructors = new Constructor<?>[] {primaryConstructor};
+						candidateConstructors = new Constructor<?>[]{primaryConstructor};
 					}
+					// 否则实例化一个构造器对象
 					else {
 						candidateConstructors = new Constructor<?>[0];
 					}
@@ -375,6 +380,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 				}
 			}
 		}
+		// 如果是实例化的构造器，这里为 False
 		return (candidateConstructors.length > 0 ? candidateConstructors : null);
 	}
 
@@ -521,7 +527,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 	 * @param ann the Autowired annotation
 	 * @return whether the annotation indicates that a dependency is required
 	 */
-	@SuppressWarnings({ "deprecation", "cast" })
+	@SuppressWarnings({"deprecation", "cast"})
 	protected boolean determineRequiredStatus(MergedAnnotation<?> ann) {
 		// The following (AnnotationAttributes) cast is required on JDK 9+.
 		return determineRequiredStatus((AnnotationAttributes)
@@ -558,6 +564,8 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 	}
 
 	/**
+	 * 将指定的 Bean 注册为依赖于自动装配的 Bean
+	 *
 	 * Register the specified bean as dependent on the autowired beans.
 	 */
 	private void registerDependentBeans(@Nullable String beanName, Set<String> autowiredBeanNames) {
@@ -575,6 +583,8 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 	}
 
 	/**
+	 * 解决指定的缓存方法参数或字段值
+	 *
 	 * Resolve the specified cached method argument or field value.
 	 */
 	@Nullable
@@ -608,19 +618,28 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 		}
 
 		@Override
-		protected void inject(Object bean, @Nullable String beanName, @Nullable PropertyValues pvs) throws Throwable {
+		protected void inject(Object bean,
+							  @Nullable String beanName,
+							  @Nullable PropertyValues pvs) throws Throwable {
+			// 需要注入的属性元素
 			Field field = (Field) this.member;
 			Object value;
+			// 已缓存
 			if (this.cached) {
 				value = resolvedCachedArgument(beanName, this.cachedFieldValue);
 			}
 			else {
+				// 依赖描述符
 				DependencyDescriptor desc = new DependencyDescriptor(field, this.required);
+				// 设置依赖描述符包含的类【不是被包含的类】
 				desc.setContainingClass(bean.getClass());
+
 				Set<String> autowiredBeanNames = new LinkedHashSet<>(1);
 				Assert.state(beanFactory != null, "No BeanFactory available");
+				// 类型转换器【SimpleTypeConverter】
 				TypeConverter typeConverter = beanFactory.getTypeConverter();
 				try {
+					// 解决依赖【重要】
 					value = beanFactory.resolveDependency(desc, beanName, autowiredBeanNames, typeConverter);
 				}
 				catch (BeansException ex) {
@@ -630,19 +649,25 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 					if (!this.cached) {
 						if (value != null || this.required) {
 							this.cachedFieldValue = desc;
+							// 将指定的 Bean 注册为依赖于自动装配的 Bean
 							registerDependentBeans(beanName, autowiredBeanNames);
 							if (autowiredBeanNames.size() == 1) {
 								String autowiredBeanName = autowiredBeanNames.iterator().next();
-								if (beanFactory.containsBean(autowiredBeanName) &&
-										beanFactory.isTypeMatch(autowiredBeanName, field.getType())) {
+								if (beanFactory.containsBean(autowiredBeanName)
+										&& beanFactory.isTypeMatch(autowiredBeanName, field.getType())) {
+									// 封装为 ShortcutDependencyDescriptor 快捷依赖描述符
 									this.cachedFieldValue = new ShortcutDependencyDescriptor(
-											desc, autowiredBeanName, field.getType());
+											desc,
+											autowiredBeanName,
+											field.getType()
+									);
 								}
 							}
 						}
 						else {
 							this.cachedFieldValue = null;
 						}
+						// 标记为已缓存
 						this.cached = true;
 					}
 				}
@@ -652,6 +677,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 				field.set(bean, value);
 			}
 		}
+
 	}
 
 
@@ -756,6 +782,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			}
 			return arguments;
 		}
+
 	}
 
 
@@ -779,6 +806,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 		public Object resolveShortcut(BeanFactory beanFactory) {
 			return beanFactory.getBean(this.shortcut, this.requiredType);
 		}
+
 	}
 
 }

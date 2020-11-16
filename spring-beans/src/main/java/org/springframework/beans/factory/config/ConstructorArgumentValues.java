@@ -32,6 +32,8 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * 构造函数参数值的持有者，通常作为 BeanDefinition 的一部分
+ *
  * Holder for constructor argument values, typically as part of a bean definition.
  *
  * <p>Supports values for a specific index in the constructor argument list
@@ -43,10 +45,19 @@ import org.springframework.util.ObjectUtils;
  */
 public class ConstructorArgumentValues {
 
+	/**
+	 * 构造参数值和对应下标的 Map 集合
+	 *
+	 * 对应 XML 配置文件中这个标签：
+	 * <constructor-arg name="XXX" value="XXX" index="1"/>
+	 * 其中 index 就是 Map 集合的 Key，其他属性会封装成 Map 集合的 value {@link ValueHolder}
+	 **/
 	private final Map<Integer, ValueHolder> indexedArgumentValues = new LinkedHashMap<>();
 
+	/**
+	 * 不指定下标时，用 List 集合存储构造函数参数值持有者
+	 **/
 	private final List<ValueHolder> genericArgumentValues = new ArrayList<>();
-
 
 	/**
 	 * Create a new empty ConstructorArgumentValues object.

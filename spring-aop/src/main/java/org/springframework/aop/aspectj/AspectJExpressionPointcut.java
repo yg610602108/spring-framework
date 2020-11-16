@@ -16,33 +16,13 @@
 
 package org.springframework.aop.aspectj;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.aspectj.weaver.patterns.NamePattern;
 import org.aspectj.weaver.reflect.ReflectionWorld.ReflectionWorldException;
 import org.aspectj.weaver.reflect.ShadowMatchImpl;
-import org.aspectj.weaver.tools.ContextBasedMatcher;
-import org.aspectj.weaver.tools.FuzzyBoolean;
-import org.aspectj.weaver.tools.JoinPointMatch;
-import org.aspectj.weaver.tools.MatchingContext;
-import org.aspectj.weaver.tools.PointcutDesignatorHandler;
-import org.aspectj.weaver.tools.PointcutExpression;
-import org.aspectj.weaver.tools.PointcutParameter;
-import org.aspectj.weaver.tools.PointcutParser;
-import org.aspectj.weaver.tools.PointcutPrimitive;
-import org.aspectj.weaver.tools.ShadowMatch;
-
+import org.aspectj.weaver.tools.*;
 import org.springframework.aop.ClassFilter;
 import org.springframework.aop.IntroductionAwareMethodMatcher;
 import org.springframework.aop.MethodMatcher;
@@ -62,6 +42,16 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Spring {@link org.springframework.aop.Pointcut} implementation
@@ -100,7 +90,6 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 		SUPPORTED_PRIMITIVES.add(PointcutPrimitive.AT_TARGET);
 	}
 
-
 	private static final Log logger = LogFactory.getLog(AspectJExpressionPointcut.class);
 
 	@Nullable
@@ -121,12 +110,10 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 
 	private transient Map<Method, ShadowMatch> shadowMatchCache = new ConcurrentHashMap<>(32);
 
-
 	/**
 	 * Create a new default AspectJExpressionPointcut.
 	 */
-	public AspectJExpressionPointcut() {
-	}
+	public AspectJExpressionPointcut() { }
 
 	/**
 	 * Create a new AspectJExpressionPointcut with the given settings.
@@ -134,7 +121,9 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 	 * @param paramNames the parameter names for the pointcut
 	 * @param paramTypes the parameter types for the pointcut
 	 */
-	public AspectJExpressionPointcut(Class<?> declarationScope, String[] paramNames, Class<?>[] paramTypes) {
+	public AspectJExpressionPointcut(Class<?> declarationScope,
+									 String[] paramNames,
+									 Class<?>[] paramTypes) {
 		this.pointcutDeclarationScope = declarationScope;
 		if (paramNames.length != paramTypes.length) {
 			throw new IllegalStateException(
@@ -143,7 +132,6 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 		this.pointcutParameterNames = paramNames;
 		this.pointcutParameterTypes = paramTypes;
 	}
-
 
 	/**
 	 * Set the declaration scope for the pointcut.
@@ -171,7 +159,6 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 		this.beanFactory = beanFactory;
 	}
 
-
 	@Override
 	public ClassFilter getClassFilter() {
 		obtainPointcutExpression();
@@ -183,7 +170,6 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 		obtainPointcutExpression();
 		return this;
 	}
-
 
 	/**
 	 * Check whether this pointcut is ready to match,
@@ -245,7 +231,6 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 		return parser;
 	}
 
-
 	/**
 	 * If a pointcut expression has been specified in XML, the user cannot
 	 * write {@code and} as "&&" (though &amp;&amp; will work).
@@ -258,7 +243,6 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 		result = StringUtils.replace(result, " not ", " ! ");
 		return result;
 	}
-
 
 	/**
 	 * Return the underlying AspectJ pointcut expression.
@@ -390,7 +374,6 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 		return ProxyCreationContext.getCurrentProxiedBeanName();
 	}
 
-
 	/**
 	 * Get a new pointcut expression based on a target class's loader rather than the default.
 	 */
@@ -517,7 +500,6 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 		return shadowMatch;
 	}
 
-
 	@Override
 	public boolean equals(Object other) {
 		if (this == other) {
@@ -551,7 +533,7 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 			sb.append(this.pointcutParameterTypes[i].getName());
 			sb.append(" ");
 			sb.append(this.pointcutParameterNames[i]);
-			if ((i+1) < this.pointcutParameterTypes.length) {
+			if ((i + 1) < this.pointcutParameterTypes.length) {
 				sb.append(", ");
 			}
 		}
@@ -579,7 +561,6 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 		this.shadowMatchCache = new ConcurrentHashMap<>(32);
 	}
 
-
 	/**
 	 * Handler for the Spring-specific {@code bean()} pointcut designator
 	 * extension to AspectJ.
@@ -601,6 +582,7 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 		public ContextBasedMatcher parse(String expression) {
 			return new BeanContextMatcher(expression);
 		}
+
 	}
 
 
@@ -672,8 +654,8 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 			return BeanFactoryAnnotationUtils.isQualifierMatch(
 					this.expressionPattern::matches, advisedBeanName, beanFactory);
 		}
-	}
 
+	}
 
 	private static class DefensiveShadowMatch implements ShadowMatch {
 
@@ -716,6 +698,7 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 			this.primary.setMatchingContext(aMatchContext);
 			this.other.setMatchingContext(aMatchContext);
 		}
+
 	}
 
 }

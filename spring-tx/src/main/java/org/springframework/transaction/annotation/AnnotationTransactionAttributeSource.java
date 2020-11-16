@@ -16,6 +16,12 @@
 
 package org.springframework.transaction.annotation;
 
+import org.springframework.lang.Nullable;
+import org.springframework.transaction.interceptor.AbstractFallbackTransactionAttributeSource;
+import org.springframework.transaction.interceptor.TransactionAttribute;
+import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
+
 import java.io.Serializable;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
@@ -23,12 +29,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
-
-import org.springframework.lang.Nullable;
-import org.springframework.transaction.interceptor.AbstractFallbackTransactionAttributeSource;
-import org.springframework.transaction.interceptor.TransactionAttribute;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 
 /**
  * Implementation of the
@@ -53,8 +53,8 @@ import org.springframework.util.ClassUtils;
  * @see org.springframework.transaction.interceptor.TransactionProxyFactoryBean#setTransactionAttributeSource
  */
 @SuppressWarnings("serial")
-public class AnnotationTransactionAttributeSource extends AbstractFallbackTransactionAttributeSource
-		implements Serializable {
+public class AnnotationTransactionAttributeSource
+		extends AbstractFallbackTransactionAttributeSource implements Serializable {
 
 	private static final boolean jta12Present;
 
@@ -69,7 +69,6 @@ public class AnnotationTransactionAttributeSource extends AbstractFallbackTransa
 	private final boolean publicMethodsOnly;
 
 	private final Set<TransactionAnnotationParser> annotationParsers;
-
 
 	/**
 	 * Create a default AnnotationTransactionAttributeSource, supporting
@@ -136,9 +135,9 @@ public class AnnotationTransactionAttributeSource extends AbstractFallbackTransa
 		this.annotationParsers = annotationParsers;
 	}
 
-
 	@Override
 	public boolean isCandidateClass(Class<?> targetClass) {
+		// 默认只有 SpringTransactionAnnotationParser 一个元素
 		for (TransactionAnnotationParser parser : this.annotationParsers) {
 			if (parser.isCandidateClass(targetClass)) {
 				return true;
@@ -171,12 +170,15 @@ public class AnnotationTransactionAttributeSource extends AbstractFallbackTransa
 	 */
 	@Nullable
 	protected TransactionAttribute determineTransactionAttribute(AnnotatedElement element) {
+		// 默认只有 SpringTransactionAnnotationParser 一个元素
 		for (TransactionAnnotationParser parser : this.annotationParsers) {
+			// 解析事务注解
 			TransactionAttribute attr = parser.parseTransactionAnnotation(element);
 			if (attr != null) {
 				return attr;
 			}
 		}
+
 		return null;
 	}
 
@@ -187,7 +189,6 @@ public class AnnotationTransactionAttributeSource extends AbstractFallbackTransa
 	protected boolean allowPublicMethodsOnly() {
 		return this.publicMethodsOnly;
 	}
-
 
 	@Override
 	public boolean equals(Object other) {

@@ -16,15 +16,15 @@
 
 package org.springframework.core.annotation;
 
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * {@link LinkedHashMap} subclass representing annotation attribute
@@ -54,7 +54,6 @@ public class AnnotationAttributes extends LinkedHashMap<String, Object> {
 	final String displayName;
 
 	boolean validated = false;
-
 
 	/**
 	 * Create a new, empty {@link AnnotationAttributes} instance.
@@ -157,7 +156,6 @@ public class AnnotationAttributes extends LinkedHashMap<String, Object> {
 		}
 		return null;
 	}
-
 
 	/**
 	 * Get the type of annotation represented by this {@code AnnotationAttributes}.
@@ -429,7 +427,6 @@ public class AnnotationAttributes extends LinkedHashMap<String, Object> {
 		}
 		return String.valueOf(value);
 	}
-
 
 	/**
 	 * Return an {@link AnnotationAttributes} instance based on the given map.
